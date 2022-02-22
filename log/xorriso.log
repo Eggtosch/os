@@ -1,0 +1,13 @@
+xorriso 1.5.4 : RockRidge filesystem manipulator, libburnia project.
+
+Drive current: -outdev 'stdio:bin/os.iso'
+Media current: stdio file, overwriteable
+Media status : is blank
+Media summary: 0 sessions, 0 data blocks, 0 data,  805g free
+Added to ISO image: directory '/'='/home/oskar/programs/os/fs'
+xorriso : UPDATE :       9 files added in 1 seconds
+xorriso : UPDATE :       9 files added in 1 seconds
+ISO image produced: 1021 sectors
+Written to medium : 1021 sectors at LBA 0
+Writing to 'stdio:bin/os.iso' completed successfully.
+

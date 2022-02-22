@@ -1,0 +1,58 @@
+# comments are single line
+
+# assignements and primitive values #
+# nil type
+a = nil
+
+# boolean type
+b = false
+c = true
+
+# integer type
+d = 42
+
+# float type
+e = 420.69
+
+# string type
+f = "operating systems language"
+
+# array type, can hold different types
+g = [1, false, "a"]
+
+# hash type, key-value map of any values/types
+h = {0: false, "abc": nil, 3.9: ""}
+
+# function definitions
+def i()
+	return 1
+end
+
+# emulation of classes
+j = {}
+def j.k()
+	return nil
+end
+
+# operators (builtin functions)
+1 + 2
+"abc" + "def"
+[1, 2, 3] - [1]
+4.7 * 5
+33 / 89.0
+4324 % 82
+0x123 ^ 0x321 # hexadecimal int literals
+321**213 # power
+true and false
+false or true
+not true
+<< >> | & ~
+&& # same as and
+|| # same as or
+!  # same as not
+== != > < >= <=
+/= += -= *= %= **=
+while exp do block end
+if exp then block elsif exp then block else block end
+for e in l do end
+for name = init_exp, cond_exp, update_exp do block end

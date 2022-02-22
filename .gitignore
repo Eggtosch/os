@@ -1,0 +1,11 @@
+# wildcard ignores
+bin/**/*
+cross-compiler/**/*
+doc/**/*
+**/.bin/**/*
+
+# specific files
+scripts/FontForge-2020-11-07-21ad4a1-x86_64.AppImage
+scripts/avenixel.zip
+os.sublime-project
+os.sublime-workspace
