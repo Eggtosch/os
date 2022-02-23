@@ -32,6 +32,7 @@ struct fb_buffer framebuffer_unbuffered(void) {
 	buf.y = 0;
 	buf.width  = _fb_info->fb_width;
 	buf.height = _fb_info->fb_height;
+	buf.pitch  = _fb_info->fb_pitch;
 	return buf;
 }
 
@@ -41,6 +42,7 @@ struct fb_buffer framebuffer_init_buffer(u16 x, u16 y, u16 width, u16 height) {
 	buf.y      = make_even(make_between(0, y, _fb_info->fb_height));
 	buf.width  = make_even(make_between(0, width,  _fb_info->fb_width  - buf.x));
 	buf.height = make_even(make_between(0, height, _fb_info->fb_height - buf.y));
+	buf.pitch  = buf.width;
 
 	u64 size = buf.height * buf.width * 4;
 	buf.buffer = pmm_alloc(size / PAGE_SIZE + 1);
