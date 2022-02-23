@@ -16,6 +16,7 @@ struct fb_buffer {
 	u16 y;
 	u16 width;
 	u16 height;
+	u16 pitch;
 };
 
 void framebuffer_init(struct fb_info *fb_info);
