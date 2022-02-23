@@ -12,9 +12,10 @@ MODULES_RM_FILES := $(wildcard $(FS_MODULES_DIR)/*)
 
 ISO := bin/os.iso
 
-LOG_XORRISO := log/xorriso.log
-LOG_LIMINE  := log/limine-install.log
-LOG_DD      := log/dd.log
+LOG_DIR     := log
+LOG_XORRISO := $(LOG_DIR)/xorriso.log
+LOG_LIMINE  := $(LOG_DIR)/limine-install.log
+LOG_DD      := $(LOG_DIR)/dd.log
 
 
 .PHONY: build b
@@ -26,6 +27,7 @@ build b:
 	@make -s -C osl all
 	@cp -u $(BOOT_FILES) $(FS_BOOT_DIR)
 	@cp -u $(KERNEL_MODULES) $(FS_MODULES_DIR)
+	@mkdir -p $(LOG_DIR)
 	@xorriso -as mkisofs				\
 			-b boot/limine-hdd.bin	\
 			-no-emul-boot -boot-load-size 4 -boot-info-table \
@@ -36,7 +38,7 @@ build b:
 
 .PHONY: run r
 run r:
-	@qemu-system-x86_64 -d int -D qemu_log.txt -serial stdio -s -drive format=raw,file=$(ISO)
+	@qemu-system-x86_64 -serial stdio -s -drive format=raw,file=$(ISO)
 
 .PHONY: install i
 install i:

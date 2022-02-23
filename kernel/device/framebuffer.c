@@ -2,6 +2,7 @@
 #include <device/framebuffer.h>
 #include <memory/pmm.h>
 #include <debug.h>
+#include <os/io.h>
 
 #include <device/serial.h>
 
@@ -20,9 +21,69 @@ static u64 make_even(u64 value) {
 	return value & (~1);
 }
 
-void framebuffer_init(struct fb_info *fb_info) {
+static bool mtrr_range_overlap(u64 base1, u64 mask1, u64 base2, u64 size2) {
+	base1 &= ~0xfff;
+	mask1 &= ~0xfff;
+
+	for (u64 i = base2; i < size2; i += 4096) {
+		if ((i & mask1) == (base1 & mask1))
+			return true;
+	}
+
+	return false;
+}
+
+static u64 alignup_power2(u64 value, u64 align) {
+	for (u64 aligned = 1;; aligned *= 2) {
+		if (aligned >= value) {
+			value = aligned;
+			break;
+		}
+	}
+	return ((value + align - 1) / align) * align;
+}
+
+static u64 enable_mtrr(u32 *addr, u64 pitch, u64 height) {
+	u64 ia32_mtrrcap = rdmsr(0xfe);
+	if (!(ia32_mtrrcap & (1 << 10))) {
+		return 1;
+	}
+
+	u32 eax, ebx, ecx, edx;
+	if (!cpuid(0x80000008, 0, &eax, &ebx, &ecx, &edx))
+		return 1;
+
+	u8 max_phys_addr = eax & 0xff;
+	u64 base = VIRTUAL_TO_PHYSICAL((u64) addr);
+	u64 size = alignup_power2(pitch * height, PAGE_SIZE);
+	u64 mask = (((u64) 1 << max_phys_addr) - 1) & ~(size - 1);
+
+	u8 nregs = ia32_mtrrcap & 0xff;
+	for (u32 i = 0; i < nregs; i++) {
+		u64 mtrrbase = rdmsr(0x200 + i * 2);
+		u64 mtrrmask = rdmsr(0x200 + i * 2 + 1);
+		if (mtrr_range_overlap(mtrrbase, mtrrmask, base, size)) {
+			return 1;
+		}
+	}
+
+	for (u8 i = 0; i < nregs; i++) {
+		if (rdmsr(0x200 + i * 2 + 1) & (1 << 11))
+			continue;
+
+		wrmsr(0x200 + i * 2,     base | 0x1);
+		wrmsr(0x200 + i * 2 + 1, mask | (1 << 11));
+		return 0;
+	}
+
+	return 1;
+}
+
+u64 framebuffer_init(struct fb_info *fb_info) {
 	_fb_info = fb_info;
 	_fb_info->fb_pitch /= 4;
+
+	return enable_mtrr(fb_info->fb_addr, fb_info->fb_pitch, fb_info->fb_height);
 }
 
 struct fb_buffer framebuffer_unbuffered(void) {
