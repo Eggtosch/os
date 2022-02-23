@@ -19,7 +19,7 @@ struct fb_buffer {
 	u16 pitch;
 };
 
-void framebuffer_init(struct fb_info *fb_info);
+u64 framebuffer_init(struct fb_info *fb_info);
 
 struct fb_buffer framebuffer_unbuffered(void);
 struct fb_buffer framebuffer_init_buffer(u16 x, u16 y, u16 width, u16 height);

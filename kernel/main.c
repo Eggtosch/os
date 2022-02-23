@@ -17,14 +17,15 @@
 #include <debug.h>
 
 void kmain(struct boot_info *boot_info) {
-	framebuffer_init(&(boot_info->fb_info));
 	serial_init();
+	u64 fb_ret = framebuffer_init(&(boot_info->fb_info));
 	console_init();
 	stdio_init(console_io);
-	debug(DEBUG_INFO, "Initialized stdio system");
-	debug(DEBUG_INFO, "Initialized framebuffer");
 	debug(DEBUG_INFO, "Initialized serial");
+	debug(DEBUG_INFO, "Initialized framebuffer (write combining %ssupported)",
+						fb_ret != 0 ? "un" : "");
 	debug(DEBUG_INFO, "Initialized console");
+	debug(DEBUG_INFO, "Initialized stdio system");
 
 	pmm_init(&(boot_info->mem_info));
 	vmm_init();

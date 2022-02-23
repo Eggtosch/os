@@ -2,7 +2,10 @@
 bin/**/*
 cross-compiler/**/*
 doc/**/*
+log/**/*
 **/.bin/**/*
+*.elf
+*.iso
 
 # specific files
 scripts/FontForge-2020-11-07-21ad4a1-x86_64.AppImage
