@@ -127,7 +127,7 @@ void _start(struct stivale2_struct *stivale2_info) {
 
 	static struct boot_info boot_info;
 
-	boot_info.stack_addr = (void*) os_stack;
+	boot_info.stack_addr = (void*) os_stack + sizeof(os_stack);
 
 	boot_info.fb_info.fb_addr	= (void*) fb_info->framebuffer_addr;
 	boot_info.fb_info.fb_width	= fb_info->framebuffer_width;

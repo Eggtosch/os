@@ -56,6 +56,11 @@ u64 interrupt_handler(u64 rsp) {
 
 	if (isr_num < 32) {
 		debug(DEBUG_INFO, "(kernel-panic) %d -> %s", isr_num, exception_names[isr_num]);
+		if (isr_num == 0xe) {
+			u64 cr2;
+			asm volatile("mov %%cr2, %0" : "=r"(cr2) :: "memory");
+			debug(DEBUG_INFO, "fault address: %p, error code: %#x", cr2, cpu_state->error_code);
+		}
 		while (1) {
 			asm volatile("cli");
 			asm volatile("hlt");

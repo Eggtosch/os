@@ -6,7 +6,7 @@ AR           := x86_64-elf-ar
 CFLAGS =												\
 	-I. -I../include -nostdinc							\
 	-Wall -Wextra										\
-	-O2 -pipe											\
+	-O2 -pipe -g -ggdb											\
 	-ffreestanding -fno-stack-protector -fno-pic 		\
 	-mno-80387 -mno-mmx -mno-3dnow -mno-sse -mno-sse2 	\
 	-mno-red-zone -mcmodel=kernel 						\

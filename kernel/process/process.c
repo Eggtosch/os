@@ -9,6 +9,8 @@ u8 *_osl_addr = NULL;
 u64 _osl_size = 0;
 
 
+extern void asm_jump_usermode(u64 addr);
+
 void process_init(struct module_info *module_info) {
 	u32 nmodules = module_info->module_count;
 
@@ -17,6 +19,7 @@ void process_init(struct module_info *module_info) {
 		if (strcmp(m->string, "osl") == 0) {
 			_osl_addr = m->begin;
 			_osl_size = m->end - m->begin;
+			debug(DEBUG_INFO, "found osl binary: %p", _osl_addr);
 		}
 	}
 
@@ -24,4 +27,5 @@ void process_init(struct module_info *module_info) {
 		debug(DEBUG_ERROR, "OSL module needed for processes was not found in loaded kernel modules!");
 		kexit();
 	}
+	asm_jump_usermode((u64) _osl_addr);
 }
