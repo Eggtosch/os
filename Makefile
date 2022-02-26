@@ -8,7 +8,7 @@ BOOT_FILES     := bin/kernel.elf					\
 KERNEL_MODULES := bin/osl.bin
 
 BOOT_RM_FILES    := $(patsubst %, $(FS_BOOT_DIR)/%, $(notdir $(BOOT_FILES)))
-MODULES_RM_FILES := $(wildcard $(FS_MODULES_DIR)/*)
+MODULES_RM_FILES := $(FS_MODULES_DIR)/osl.bin
 
 ISO := bin/os.iso
 
