@@ -31,7 +31,7 @@ static struct idt_descriptor _idt[256];
 static struct idt_ptr        _idt_ptr;
 
 
-static void create_descriptor(u8 index, u8 type_and_attributes) {
+void idt_create_descriptor(u8 index, u8 type_and_attributes) {
 	u64 offset = asm_isr_names[index];
 	struct idt_descriptor *desc = &_idt[index];
 
@@ -46,13 +46,13 @@ static void create_descriptor(u8 index, u8 type_and_attributes) {
 
 void idt_init(void) {
 	for (u8 i = 0; i < 32; i++) {
-		create_descriptor(i, 0x8e);
+		idt_create_descriptor(i, 0x8e);
 	}
 
 	pic_remap();
 
 	for (u16 i = 32; i < 256; i++) {
-		create_descriptor((u8) i, 0x8e);
+		idt_create_descriptor((u8) i, 0x8e);
 	}
 
 	_idt_ptr.limit = sizeof(_idt) - 1;

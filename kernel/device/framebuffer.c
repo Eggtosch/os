@@ -138,7 +138,7 @@ void framebuffer_deinit_buffer(struct fb_buffer buf) {
 }
 
 void framebuffer_draw_glyph(struct fb_buffer buf, u8 *glyph, struct fb_rect *dst, u32 fg, u32 bg) {
-	u32 pitch = buf.buffer == _fb_info->fb_addr ? _fb_info->fb_pitch : buf.width;
+	u32 pitch = buf.pitch;
 	u32 *dest = buf.buffer + (dst->y * pitch) + dst->x;
 	u32 height = dst->height;
 	u32 width  = dst->width;
@@ -163,8 +163,8 @@ void framebuffer_scroll_down(struct fb_buffer buf, u64 start_y, u32 bg_color) {
 	}
 
 	for (u64 line = start_y; line < buf.height; line++) {
-		u64 *src = (u64*) (buf.buffer + (line * buf.width));
-		u64 *dst = (u64*) (buf.buffer + (line - start_y) * buf.width);
+		u64 *src = (u64*) (buf.buffer + (line * buf.pitch));
+		u64 *dst = (u64*) (buf.buffer + (line - start_y) * buf.pitch);
 		for (u64 x = 0; x < buf.width / 2; x++) {
 			if (dst[x] != src[x]) {
 				dst[x] = src[x] | DOUBLEPIXEL_CHANGED;
@@ -173,12 +173,12 @@ void framebuffer_scroll_down(struct fb_buffer buf, u64 start_y, u32 bg_color) {
 	}
 
 	u64 color64 = (u64) bg_color << 32 | bg_color | DOUBLEPIXEL_CHANGED;
-	u64 *dst = (u64*) (buf.buffer + (buf.height - start_y) * buf.width);
+	u64 *dst = (u64*) (buf.buffer + (buf.height - start_y) * buf.pitch);
 	for (u64 line = buf.height - start_y; line < buf.height; line++) {
 		for (u64 x = 0; x < buf.width / 2; x++) {
 			dst[x] = color64;
 		}
-		dst += buf.width / 2;
+		dst += buf.pitch / 2;
 	}
 }
 

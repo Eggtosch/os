@@ -12,6 +12,6 @@ static void syscall_handle(struct cpu_state *cpu_state) {
 
 void syscall_init(void *kernel_stack) {
 	gdt_init(kernel_stack);
-	interrupt_register(INT_SYSCALL, syscall_handle);
+	interrupt_register(INT_SYSCALL, syscall_handle, INT_USER);
 	debug(DEBUG_INFO, "Initialized syscalls");
 }

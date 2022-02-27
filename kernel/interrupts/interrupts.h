@@ -31,8 +31,11 @@ struct cpu_state {
 typedef void (*isr_func)(struct cpu_state*);
 
 
-#define INT_KEYBOARD (33)
+#define INT_KERNEL (0)
+#define INT_USER   (1)
+
+#define INT_KEYBOARD (0x21)
 #define INT_SYSCALL  (0x80)
 
 
-void interrupt_register(u32 isr_num, isr_func f);
+void interrupt_register(u32 isr_num, isr_func f, u32 int_type);

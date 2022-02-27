@@ -35,8 +35,7 @@ void kmain(struct boot_info *boot_info) {
 	keyboard_init();
 
 	process_init(&(boot_info->module_info));
-
-	// switch to userspace and start osl shell program
+	process_start("shell.osl");
 
 	while(1) {
 		asm("hlt");

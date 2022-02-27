@@ -3,6 +3,7 @@
 #include <string.h>
 #include <common.h>
 #include <kexit.h>
+#include <memory/vmm.h>
 
 
 u8 *_osl_addr = NULL;
@@ -27,5 +28,12 @@ void process_init(struct module_info *module_info) {
 		debug(DEBUG_ERROR, "OSL module needed for processes was not found in loaded kernel modules!");
 		kexit();
 	}
-	asm_jump_usermode((u64) _osl_addr);
+}
+
+void process_start(const char *name) {
+	(void) name;
+	u64 *pagedir = vmm_pagedir_create();
+	vmm_map_data(pagedir, 0x1000000000, _osl_addr, _osl_size);
+	vmm_set_pagedir(pagedir);
+	asm_jump_usermode(0x1000000000);
 }
