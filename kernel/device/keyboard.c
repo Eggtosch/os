@@ -20,7 +20,7 @@ static void isr_keyboard(struct cpu_state *cpu_state) {
 }
 
 void keyboard_init(void) {
-	interrupt_register(INT_KEYBOARD, isr_keyboard);
+	interrupt_register(INT_KEYBOARD, isr_keyboard, INT_KERNEL);
 
 	while (io_inb(KEYBOARD_CMD) & 1) {
 		io_inb(KEYBOARD_DATA);

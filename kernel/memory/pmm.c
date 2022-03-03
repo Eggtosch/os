@@ -167,7 +167,8 @@ void *pmm_alloc(size_t page_count) {
 			return (void*) PHYSICAL_TO_VIRTUAL(ptr);
 		}
 	}
-	return NULL;
+	debug(DEBUG_INFO, "Out of memory!");
+	kexit();
 }
 
 void pmm_free(void *ptr, size_t page_count) {
