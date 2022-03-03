@@ -1,3 +1,4 @@
+FS_DIR         := fs
 FS_BOOT_DIR    := fs/boot
 FS_MODULES_DIR := fs/modules
 BOOT_FILES     := bin/kernel.elf					\
@@ -5,10 +6,7 @@ BOOT_FILES     := bin/kernel.elf					\
 					limine/limine.sys				\
 					limine/limine-hdd.bin			\
 					limine/limine-eltorito-efi.bin
-KERNEL_MODULES := bin/osl.bin
-
-BOOT_RM_FILES    := $(patsubst %, $(FS_BOOT_DIR)/%, $(notdir $(BOOT_FILES)))
-MODULES_RM_FILES := $(FS_MODULES_DIR)/osl.bin
+KERNEL_MODULES := bin/osl.bin programs/shell.osl
 
 ISO := bin/os.iso
 
@@ -20,13 +18,16 @@ LOG_DD      := $(LOG_DIR)/dd.log
 
 .PHONY: build b
 build b:
+	@# generate binaries
 	@mkdir -p bin
-	@./scripts/gen_font_bitmap.rb fonts/ kernel/console/font.gen.h 1> /dev/null
 	@make -s -C lib all
 	@make -s -C kernel all
 	@make -s -C osl all
+	@# generate fs
+	@mkdir -p $(FS_BOOT_DIR) $(FS_MODULES_DIR)
 	@cp -u $(BOOT_FILES) $(FS_BOOT_DIR)
 	@cp -u $(KERNEL_MODULES) $(FS_MODULES_DIR)
+	@# create iso
 	@mkdir -p $(LOG_DIR)
 	@xorriso -as mkisofs				\
 			-b boot/limine-hdd.bin	\
@@ -35,6 +36,10 @@ build b:
 			-efi-boot-part --efi-boot-image --protective-msdos-label \
 			fs/ -o $(ISO) 2> $(LOG_XORRISO) || (cat $(LOG_XORRISO) && false)
 	@limine-install $(ISO) 2> $(LOG_LIMINE)  || (cat $(LOG_LIMINE)  && false)
+
+.PHONY: fonts
+fonts:
+	@./scripts/gen_font_bitmap.rb fonts/ kernel/console/font.gen.h 1> /dev/null
 
 .PHONY: run r
 run r:
@@ -51,8 +56,8 @@ clean c:
 	@make -s -C lib clean
 	@make -s -C osl clean
 	@rm -f $(ISO)
-	@rm -f $(BOOT_RM_FILES)
-	@rm -f $(MODULES_RM_FILES)
+	@rm -rf $(FS_DIR)
+
 
 
 ALL_C_H_RB_FILES := $(shell find . -type f -name "*.c" -o -name "*.h" -o -name "*.rb")
