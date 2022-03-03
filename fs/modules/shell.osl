@@ -1,3 +1,0 @@
-require 'io'
-
-io.puts("hello world")

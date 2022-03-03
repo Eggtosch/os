@@ -2,6 +2,7 @@
 bin/**/*
 cross-compiler/**/*
 doc/**/*
+fs/**/*
 log/**/*
 **/.bin/**/*
 *.elf
