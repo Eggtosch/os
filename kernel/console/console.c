@@ -45,6 +45,14 @@ static void handle_control_char(struct io_device *stream, u8 c) {
 			console_putc(stream, ' ');
 		}
 		return;
+	} else if (c == '\b') {
+		if (_io->x_pos < _io->font->font_width) {
+			return;
+		}
+		_io->x_pos -= _io->font->font_width;
+		console_putc(stream, ' ');
+		_io->x_pos -= _io->font->font_width;
+		return;
 	}
 }
 
