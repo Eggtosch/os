@@ -1,6 +1,6 @@
 #include <memory/pmm.h>
 #include <debug.h>
-#include <stdio.h>
+#include <io/stdio.h>
 #include <kexit.h>
 
 

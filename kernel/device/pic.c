@@ -1,5 +1,5 @@
 #include <device/pic.h>
-#include <os/io.h>
+#include <io/io.h>
 
 
 #define PIC1_CMD  (0x20)

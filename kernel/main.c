@@ -13,7 +13,7 @@
 
 #include <process/process.h>
 
-#include <stdio.h>
+#include <io/stdio.h>
 #include <debug.h>
 
 void kmain(struct boot_info *boot_info) {

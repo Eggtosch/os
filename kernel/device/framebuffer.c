@@ -2,7 +2,7 @@
 #include <device/framebuffer.h>
 #include <memory/pmm.h>
 #include <debug.h>
-#include <os/io.h>
+#include <io/io.h>
 
 #include <device/serial.h>
 

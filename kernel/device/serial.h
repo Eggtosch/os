@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdio.h>
+#include <io/stdio.h>
 
 extern struct io_device *serial_io;
 

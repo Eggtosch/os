@@ -1,7 +1,6 @@
 #pragma once
 
 #include <boot/boot_info.h>
-#include <stdio.h>
 
 struct fb_rect {
 	u16 x;

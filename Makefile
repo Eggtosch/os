@@ -20,7 +20,6 @@ LOG_DD      := $(LOG_DIR)/dd.log
 build b:
 	@# generate binaries
 	@mkdir -p bin
-	@make -s -C lib all
 	@make -s -C kernel all
 	@make -s -C osl all
 	@# generate fs
@@ -53,7 +52,6 @@ install i:
 .PHONY: clean c
 clean c:
 	@make -s -C kernel clean
-	@make -s -C lib clean
 	@make -s -C osl clean
 	@rm -f $(ISO)
 	@rm -rf $(FS_DIR)
