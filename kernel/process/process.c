@@ -6,34 +6,55 @@
 #include <memory/vmm.h>
 
 
+struct module_info *_module_info;
 u8 *_osl_addr = NULL;
 u64 _osl_size = 0;
 
 
-extern void asm_jump_usermode(u64 addr);
+extern void asm_jump_usermode(u64 addr, u64 stack, u64 prog, u64 size);
 
-void process_init(struct module_info *module_info) {
-	u32 nmodules = module_info->module_count;
+static void search_module(const char *module, u8 **addr, u64 *size) {
+	u32 nmodules = _module_info->module_count;
 
 	for (u32 i = 0; i < nmodules; i++) {
-		struct kernel_module *m = &module_info->modules[i];
-		if (strcmp(m->string, "osl") == 0) {
-			_osl_addr = m->begin;
-			_osl_size = m->end - m->begin;
-			debug(DEBUG_INFO, "found osl binary: %p", _osl_addr);
+		struct kernel_module *m = &_module_info->modules[i];
+		if (strcmp(m->string, module) == 0) {
+			*addr = m->begin;
+			*size = m->end - m->begin;
+			return;
 		}
 	}
+	*addr = NULL;
+	*size = 0;
+}
+
+void process_init(struct module_info *module_info) {
+	_module_info = module_info;
+
+	search_module("osl", &_osl_addr, &_osl_size);
 
 	if (_osl_addr == NULL) {
 		debug(DEBUG_ERROR, "OSL module needed for processes was not found in loaded kernel modules!");
 		kexit();
+	} else {
+		debug(DEBUG_INFO, "found osl binary: %p", _osl_addr);
 	}
 }
 
 void process_start(const char *name) {
-	(void) name;
+	char *prog;
+	u64 prog_size;
+	search_module(name, (u8**) &prog, &prog_size);
+	if (prog == NULL) {
+		debug(DEBUG_ERROR, "could not find program %s", name);
+		return;
+	}
+
 	u64 *pagedir = vmm_pagedir_create();
 	vmm_map_data(pagedir, 0x1000000000, _osl_addr, _osl_size);
+	u64 prog_addr = 0x1000000000 + _osl_size / PAGE_SIZE + (_osl_size % PAGE_SIZE == 0 ? 0 : PAGE_SIZE);
+	vmm_map_data(pagedir, prog_addr, prog, prog_size);
+	vmm_map(pagedir, 0x2000000000 - 0x10000, 0x10000);
 	vmm_set_pagedir(pagedir);
-	asm_jump_usermode(0x1000000000);
+	asm_jump_usermode(0x1000000000, 0x2000000000, prog_addr, prog_size);
 }

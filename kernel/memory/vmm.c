@@ -94,6 +94,14 @@ static void vmm_map_page(u64 *pagedir, u64 phys_addr, u64 virt_addr) {
 	asm volatile("invlpg (%0)" : : "r" (virt_addr));
 }
 
+void vmm_map(u64 *pagedir, u64 virt_addr, u64 size) {
+	u64 pages = size / PAGE_SIZE + 1;
+	for (u64 i = 0; i < pages; i++) {
+		u64 page = VIRTUAL_TO_PHYSICAL(pmm_alloc(1));
+		vmm_map_page(pagedir, page, virt_addr + PAGE_SIZE * i);
+	}
+}
+
 void vmm_map_data(u64 *pagedir, u64 virt_addr, void *data, u64 data_size) {
 	u64 pages = data_size / PAGE_SIZE + 1;
 	for (u64 i = 0; i < pages; i++) {

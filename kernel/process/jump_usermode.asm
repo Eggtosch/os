@@ -2,6 +2,7 @@
 
 global asm_jump_usermode
 
+; (rip, rsp, arg1, arg2)
 asm_jump_usermode:
 	mov ax, 0x43
 	mov ds, ax
@@ -9,11 +10,12 @@ asm_jump_usermode:
 	mov fs, ax
 	mov gs, ax
 
-	mov rax, rsp
 	push 0x43
-	push rax
+	push rsi
 	pushf
 	push 0x3b
 	push rdi
+	mov rdi, rdx
+	mov rsi, rcx
 
 	iretq
