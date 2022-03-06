@@ -4,9 +4,9 @@ CC := x86_64-elf-gcc
 LD := x86_64-elf-ld
 
 CFLAGS =												\
-	-I. -I../include -nostdinc							\
+	-I. -nostdinc										\
 	-Wall -Wextra										\
-	-O2 -pipe -g -ggdb										\
+	-O2 -pipe -g -ggdb									\
 	-ffreestanding -fno-stack-protector -fno-pic 		\
 	-mno-80387 -mno-mmx -mno-3dnow -mno-sse -mno-sse2 	\
 	-mno-red-zone -mcmodel=kernel 						\
@@ -16,9 +16,7 @@ LDFLAGS =												\
 	-Tkernel.ld											\
 	-nostdlib											\
 	-zmax-page-size=0x1000								\
-	-static												\
-	-L../bin/											\
-	-lc
+	-static
 
 
 OBJDIR       := .bin

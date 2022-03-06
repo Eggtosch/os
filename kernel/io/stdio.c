@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <io/stdio.h>
 
 struct io_device *stdio = NULL;
 

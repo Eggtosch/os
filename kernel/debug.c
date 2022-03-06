@@ -1,6 +1,6 @@
 #include <debug.h>
 #include <common.h>
-#include <stdio.h>
+#include <io/stdio.h>
 #include <device/serial.h>
 #include <console/console.h>
 

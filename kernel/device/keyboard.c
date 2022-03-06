@@ -1,9 +1,9 @@
 #include <device/keyboard.h>
 #include <interrupts/interrupts.h>
 #include <device/pic.h>
-#include <os/io.h>
+#include <io/io.h>
 #include <debug.h>
-#include <stdio.h>
+#include <io/stdio.h>
 
 
 #define KEYBOARD_DATA (0x60)

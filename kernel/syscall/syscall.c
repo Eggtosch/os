@@ -3,10 +3,17 @@
 #include <interrupts/interrupts.h>
 #include <common.h>
 #include <debug.h>
+#include <io/stdio.h>
 
 
 static void syscall_handle(struct cpu_state *cpu_state) {
-	debug(DEBUG_INFO, "got syscall: rdi = %#x, rsi = %#x, rsp = %#x", cpu_state->rdi, cpu_state->rsi, cpu_state->rax);
+	if (cpu_state->rax == 0x1) {
+		char *str = (char*) cpu_state->rbx;
+		u64 size  = cpu_state->rcx;
+		printf("%.*s", size, str);
+	} else if (cpu_state->rax == 0x2) {
+		asm volatile("hlt");
+	}
 }
 
 

@@ -8,7 +8,7 @@ LD      := x86_64-elf-ld
 OBJCOPY := x86_64-elf-objcopy
 
 CFLAGS =												\
-	-I. -I../include -nostdinc							\
+	-I. -nostdinc										\
 	-Wall -Wextra										\
 	-O2 -pipe											\
 	-ffreestanding -fno-stack-protector					\
@@ -17,9 +17,7 @@ CFLAGS =												\
 LDFLAGS =												\
 	-nostdlib											\
 	-zmax-page-size=0x1000								\
-	-static --oformat=binary							\
-	-L../bin/											\
-	-lc
+	-static --oformat=binary
 
 
 OBJDIR       := .bin
