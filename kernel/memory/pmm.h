@@ -3,8 +3,6 @@
 #include <boot/boot_info.h>
 #include <common.h>
 
-#define PAGE_SIZE (4096)
-
 #define VIRTUAL_ADDR_OFFSET ((uintptr_t) 0xffff800000000000)
 
 #define VIRTUAL_TO_PHYSICAL(vaddr) ( ((uintptr_t) vaddr) - (VIRTUAL_ADDR_OFFSET) )

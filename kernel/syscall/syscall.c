@@ -6,7 +6,7 @@
 
 
 static void syscall_handle(struct cpu_state *cpu_state) {
-	debug(DEBUG_INFO, "got syscall: rax = %#x", cpu_state->rax);
+	debug(DEBUG_INFO, "got syscall: rdi = %#x, rsi = %#x, rsp = %#x", cpu_state->rdi, cpu_state->rsi, cpu_state->rax);
 }
 
 
