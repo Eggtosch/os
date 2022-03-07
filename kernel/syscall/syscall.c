@@ -4,15 +4,24 @@
 #include <common.h>
 #include <debug.h>
 #include <io/stdio.h>
+#include <vfs/vfs.h>
 
 
 static void syscall_handle(struct cpu_state *cpu_state) {
-	if (cpu_state->rax == 0x1) {
-		char *str = (char*) cpu_state->rbx;
-		u64 size  = cpu_state->rcx;
-		printf("%.*s", size, str);
-	} else if (cpu_state->rax == 0x2) {
-		asm volatile("hlt");
+	debug(DEBUG_INFO, "syscall %#x", cpu_state->rax);
+	if (cpu_state->rax == 0x0) {
+		printf("%#x", cpu_state->rbx);
+	} else if (cpu_state->rax == 0x1) {
+		int fd       = (int)   cpu_state->rbx;
+		void *buffer = (void*) cpu_state->rcx;
+		u64 count    =         cpu_state->rdx;
+		struct io_device *stream = vfs_get(fd);
+		if (stream == NULL) {
+			cpu_state->rax = -1;
+			return;
+		}
+		cpu_state->rax = stream->read(stream, buffer, count);
+		return;
 	}
 }
 

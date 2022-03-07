@@ -7,6 +7,8 @@
 #include <memory/pmm.h>
 #include <memory/vmm.h>
 
+#include <vfs/vfs.h>
+
 #include <interrupts/idt.h>
 #include <syscall/syscall.h>
 #include <device/keyboard.h>
@@ -29,6 +31,8 @@ void kmain(struct boot_info *boot_info) {
 
 	pmm_init(&(boot_info->mem_info));
 	vmm_init();
+
+	vfs_init();
 
 	idt_init();
 	syscall_init(boot_info->stack_addr);
