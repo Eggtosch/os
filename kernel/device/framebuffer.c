@@ -1,10 +1,12 @@
 #include <common.h>
 #include <device/framebuffer.h>
 #include <memory/pmm.h>
+#include <memory/vmm.h>
 #include <debug.h>
 #include <io/io.h>
 
 #include <device/serial.h>
+
 
 #define PIXEL_CHANGED 		((u32) 1 << 31)
 #define DOUBLEPIXEL_CHANGED ((u64) 1 << 63 | (u64) 1 << 31)
@@ -106,7 +108,7 @@ struct fb_buffer framebuffer_init_buffer(u16 x, u16 y, u16 width, u16 height) {
 	buf.pitch  = buf.width;
 
 	u64 size = buf.height * buf.width * 4;
-	buf.buffer = pmm_alloc(size / PAGE_SIZE + 1);
+	buf.buffer = pmm_alloc(size / PAGE_SIZE + (size % PAGE_SIZE == 0 ? 0 : 1));
 
 	u64 *dst = (u64*) (buf.buffer);
 	u64 *src = (u64*) (_fb_info->fb_addr + buf.y * _fb_info->fb_pitch + buf.x);
@@ -199,7 +201,6 @@ void framebuffer_present(struct fb_buffer buf) {
 		}
 		dst += _fb_info->fb_pitch / 2;
 	}
-	//asm volatile("rep movsq" :: "D"(dst), "S"(src), "c"(size/2) : "memory" );
 }
 
 void framebuffer_clear(struct fb_buffer buf, u32 color) {
@@ -213,4 +214,53 @@ void framebuffer_clear(struct fb_buffer buf, u32 color) {
 	for (u64 i = 0; i < size / 2; i++) {
 		dst[i] = color64;
 	}
+}
+
+
+int framebuffer_init_user(struct fb_buffer_user *buf) {
+	if (buf == NULL) {
+		return -1;
+	}
+
+	buf->x      = make_even(make_between(0, buf->x, _fb_info->fb_width));
+	buf->y      = make_even(make_between(0, buf->y, _fb_info->fb_height));
+	buf->width  = make_even(make_between(0, buf->width,  _fb_info->fb_width  - buf->x));
+	buf->height = make_even(make_between(0, buf->height, _fb_info->fb_height - buf->y));
+
+	u64 size = buf->height * buf->width * 4;
+	buf->buffer = (u32*) VMM_USER_FB;
+	vmm_map(NULL, (u64) buf->buffer, size);
+
+	return 0;
+}
+
+int framebuffer_deinit_user(struct fb_buffer_user *buf) {
+	if (buf == NULL) {
+		return -1;
+	}
+
+	u64 size = buf->height * buf->width;
+	vmm_unmap(NULL, VMM_USER_FB, size);
+
+	return 0;
+}
+
+int framebuffer_present_user(struct fb_buffer_user *buf) {
+	if (buf == NULL) {
+		return -1;
+	}
+
+	u64 *dst = (u64*) (_fb_info->fb_addr + buf->y * _fb_info->fb_pitch + buf->x);
+	u64 *src = (u64*) (buf->buffer);
+	for (u64 y = 0; y < buf->height; y++) {
+		for (u64 x = 0; x < buf->width / 2; x++) {
+			if (*src & DOUBLEPIXEL_CHANGED) {
+				*src &= ~DOUBLEPIXEL_CHANGED;
+				dst[x] = *src;
+			}
+			src++;
+		}
+		dst += _fb_info->fb_pitch / 2;
+	}
+	return 0;
 }

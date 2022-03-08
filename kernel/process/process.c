@@ -51,10 +51,12 @@ void process_start(const char *name) {
 	}
 
 	u64 *pagedir = vmm_pagedir_create();
-	vmm_map_data(pagedir, 0x1000000000, _osl_addr, _osl_size);
-	u64 prog_addr = 0x1000000000 + _osl_size / PAGE_SIZE + (_osl_size % PAGE_SIZE == 0 ? 0 : PAGE_SIZE);
+	vmm_map_data(pagedir, VMM_USER_CODE, _osl_addr, _osl_size);
+	u64 prog_addr = VMM_USER_CODE +
+					_osl_size / PAGE_SIZE +
+					(_osl_size % PAGE_SIZE == 0 ? 0 : PAGE_SIZE);
 	vmm_map_data(pagedir, prog_addr, prog, prog_size);
-	vmm_map(pagedir, 0x2000000000 - 0x10000, 0x10000);
+	vmm_map(pagedir, VMM_USER_STACK_END - VMM_USER_STACK_LEN, VMM_USER_STACK_LEN);
 	vmm_set_pagedir(pagedir);
-	asm_jump_usermode(0x1000000000, 0x2000000000, prog_addr, prog_size);
+	asm_jump_usermode(VMM_USER_CODE, VMM_USER_STACK_END, prog_addr, prog_size);
 }

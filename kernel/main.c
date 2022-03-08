@@ -18,6 +18,7 @@
 #include <io/stdio.h>
 #include <debug.h>
 
+
 void kmain(struct boot_info *boot_info) {
 	serial_init();
 	u64 fb_ret = framebuffer_init(&(boot_info->fb_info));
@@ -31,6 +32,8 @@ void kmain(struct boot_info *boot_info) {
 
 	pmm_init(&(boot_info->mem_info));
 	vmm_init();
+
+	console_init_buffering(console_io);
 
 	vfs_init();
 

@@ -28,3 +28,18 @@ void framebuffer_scroll_down(struct fb_buffer buf, u64 start_y, u32 bg_color);
 void framebuffer_draw_glyph(struct fb_buffer buf, u8 *glyph, struct fb_rect *dst, u32 fg, u32 bg);
 void framebuffer_present(struct fb_buffer buf);
 void framebuffer_clear(struct fb_buffer buf, u32 color);
+
+
+struct fb_buffer_user {
+	u32 *buffer;
+	u16 x;
+	u16 y;
+	u16 width;
+	u16 height;
+} __attribute__((packed));
+
+static_assert(sizeof(struct fb_buffer_user) == 16);
+
+int framebuffer_init_user(struct fb_buffer_user *buf);
+int framebuffer_deinit_user(struct fb_buffer_user *buf);
+int framebuffer_present_user(struct fb_buffer_user *buf);

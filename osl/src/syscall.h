@@ -40,17 +40,16 @@ struct fb_buffer {
 	u16 y;
 	u16 width;
 	u16 height;
-};
+} __attribute__((packed));
 
 /* syscall 0x3:
  * @params
  * rax = syscall number
- * rbx = buffer
- * rcx = (x << 48) | (y << 32) | (width << 16) | height
+ * rbx = buffer, populated with requested values
  * @return
- * rax = indication of success, negative if error occured
+ * rax = indication of success, negative if error occured, buffer with real values
  */
-int sys_fb_buffer_init(struct fb_buffer *buffer, u16 x, u16 y, u16 width, u16 height);
+int sys_fb_init(struct fb_buffer *fb_buffer);
 
 /* syscall 0x4:
  * @params
@@ -59,7 +58,7 @@ int sys_fb_buffer_init(struct fb_buffer *buffer, u16 x, u16 y, u16 width, u16 he
  * @return
  * rax = indication of success, negative if error occured
  */
-int sys_fb_buffer_deinit(struct fb_buffer *fb_buffer);
+int sys_fb_deinit(struct fb_buffer *fb_buffer);
 
 /* syscall 0x5:
  * @params
@@ -68,7 +67,7 @@ int sys_fb_buffer_deinit(struct fb_buffer *fb_buffer);
  * @return
  * rax = indication of success, negative if error occured
  */
-int sys_fb_buffer_present(struct fb_buffer *fb_buffer);
+int sys_fb_present(struct fb_buffer *fb_buffer);
 
 /* syscall 0x6
  * @params
@@ -91,3 +90,11 @@ int sys_mmap(void *addr, u64 length, int fd, u64 flags);
  * rax = indication of success, negative if error occured
  */
 int sys_munmap(void *addr, u64 length);
+
+/*
+ * syscall 0x8
+ * @params
+ * rax = syscall number
+ * @return -
+ */
+void sys_exit(void);
