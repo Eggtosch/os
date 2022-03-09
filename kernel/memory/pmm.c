@@ -1,15 +1,16 @@
 #include <memory/pmm.h>
-#include <debug.h>
+
 #include <io/stdio.h>
-#include <kexit.h>
 #include <string.h>
+#include <kexit.h>
+#include <debug.h>
 
 
 struct mem_bitmap {
-	size_t bitmap_size;
-	size_t mem_size;
-	u64   *mem_map;
-	u64    mem_lowest_free_page;
+	u64  bitmap_size;
+	u64  mem_size;
+	u64 *mem_map;
+	u64  mem_lowest_free_page;
 };
 
 
@@ -77,7 +78,7 @@ static char *to_unit(u64 bytes) {
 
 void pmm_init(struct mem_info *mem_info) {
 	_mem_info = mem_info;
-	size_t ram_top = 0;
+	u64 ram_top = 0;
 	struct mem_entry *largest_region = &mem_info->mem_map[0];
 
 	debug(DEBUG_INFO, "Memory Map:");
@@ -91,7 +92,7 @@ void pmm_init(struct mem_info *mem_info) {
 			continue;
 		}
 
-		size_t tmp = (uintptr_t) entry->mem_base + entry->mem_length;
+		u64 tmp = (u64) entry->mem_base + entry->mem_length;
 		if (tmp > ram_top) {
 			ram_top = tmp;
 		}
@@ -112,7 +113,7 @@ void pmm_init(struct mem_info *mem_info) {
 		}
 
 		if (entry->mem_length >= _bitmap.bitmap_size) {
-			_bitmap.mem_map = (u64*) PHYSICAL_TO_VIRTUAL((uintptr_t) entry->mem_base);
+			_bitmap.mem_map = (u64*) PHYSICAL_TO_VIRTUAL((u64) entry->mem_base);
 			u64 aligned_bitmap_size = (_bitmap.bitmap_size + (PAGE_SIZE-1)) & ~(PAGE_SIZE-1);
 			entry->mem_base   += aligned_bitmap_size;
 			entry->mem_length -= aligned_bitmap_size;
@@ -132,7 +133,7 @@ void pmm_init(struct mem_info *mem_info) {
 	for (u64 i = 0; i < mem_info->mem_entries; i++) {
 		struct mem_entry *entry = &mem_info->mem_map[i];
 		if (entry->mem_type == MEM_USABLE) {
-			void *virtaddr = (void*) PHYSICAL_TO_VIRTUAL((uintptr_t) entry->mem_base);
+			u64 virtaddr = PHYSICAL_TO_VIRTUAL((u64) entry->mem_base);
 			pmm_free(virtaddr, entry->mem_length / PAGE_SIZE);
 		}
 	}
@@ -144,9 +145,9 @@ void pmm_init(struct mem_info *mem_info) {
 	debug(DEBUG_INFO, "Initialized PMM, Bitmap at: %p %d bytes", _bitmap.mem_map, _bitmap.bitmap_size);
 }
 
-void *pmm_alloc(size_t page_count) {
+u64 pmm_alloc(u64 page_count) {
 	if (page_count == 0) {
-		return NULL;
+		return 0;
 	}
 	u64 consecutive_free_pages = 0;
 	u64 npages = _bitmap.mem_size / PAGE_SIZE;
@@ -164,16 +165,17 @@ void *pmm_alloc(size_t page_count) {
 			if (start_page == _bitmap.mem_lowest_free_page) {
 				cache_lowest_free_page_from(i);
 			}
-			uintptr_t ptr = start_page * PAGE_SIZE;
-			return memset((void*) PHYSICAL_TO_VIRTUAL(ptr), 0, page_count * PAGE_SIZE);
+			u64 ptr = start_page * PAGE_SIZE;
+			memset((void*) ptr, 0, page_count * PAGE_SIZE);
+			return PHYSICAL_TO_VIRTUAL(ptr);
 		}
 	}
 	debug(DEBUG_INFO, "Out of memory!");
 	kexit();
 }
 
-void pmm_free(void *ptr, size_t page_count) {
-	u64 index = VIRTUAL_TO_PHYSICAL((uintptr_t) ptr) / PAGE_SIZE;
+void pmm_free(u64 ptr, u64 page_count) {
+	u64 index = VIRTUAL_TO_PHYSICAL(ptr) / PAGE_SIZE;
 	for (u64 i = 0; i < page_count; i++) {
 		mem_bitmap_unset(index + i);
 	}

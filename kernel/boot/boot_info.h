@@ -1,14 +1,7 @@
-/*
- * Date:   07.01.2022, 23:03
- * Author: Oskar Munz
- * 
- * Information about available devices after booting,
- * e.g. framebuffer
- */
-
 #pragma once
 
 #include <common.h>
+
 
 enum MEM_TYPE {
 	MEM_USABLE                 = 0x0001,
@@ -42,8 +35,8 @@ struct boot_info {
 			u32 mem_unused;
 		} *mem_map;
 
-		uintptr_t mem_pmm_base;
-		uintptr_t mem_vmm_base;
+		u64 mem_pmm_base;
+		u64 mem_vmm_base;
 
 	} mem_info;
 

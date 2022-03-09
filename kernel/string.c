@@ -1,11 +1,14 @@
 #include <string.h>
 
-size_t strlen(const char *s) {
+#include <common.h>
+
+
+u64 strlen(const char *s) {
 	if (s == NULL) {
 		return 0;
 	}
 
-	size_t len = 0;
+	u64 len = 0;
 	while (*s) {
 		len++;
 		s++;
@@ -30,4 +33,13 @@ void * memset(void *ptr, int value, u64 num) {
 		p[i] = value;
 	}
 	return ptr;
+}
+
+void * memcpy(void *dst, const void *src, u64 count) {
+	u8 *dst0 = (u8*) dst;
+	u8 *src0 = (u8*) src;
+	for (u64 i = 0; i < count; i++) {
+		dst0[i] = src0[i];
+	}
+	return dst;
 }

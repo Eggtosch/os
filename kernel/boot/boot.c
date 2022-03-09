@@ -1,16 +1,11 @@
-/*
- * Date:   08.01.2022, 00:41
- * Author: Oskar Munz
- * 
- * abstract stivale2 specifics from the rest of the kernel
- * translate and check stivale2 bootloader parameters for the rest of the kernel
- */
-
-#include <common.h>
-#include <boot/stivale2.h>
 #include <boot/boot_info.h>
+#include <boot/stivale2.h>
 
-static unsigned char os_stack[8192 * 4];
+#include <string.h>
+#include <common.h>
+
+
+static u8 os_stack[PAGE_SIZE * 4];
 
 
 static struct stivale2_tag unmap_null_tag = {
@@ -39,9 +34,9 @@ static struct stivale2_header_tag_framebuffer boot_framebuffer_hdr_tag = {
 __attribute__((section(".stivale2hdr"), used))
 static struct stivale2_header boot_stivale_hdr = {
 	.entry_point = 0,
-	.stack = (uintptr_t) os_stack + sizeof(os_stack),
+	.stack = (u64) os_stack + sizeof(os_stack),
 	.flags = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
-	.tags = (uintptr_t) &boot_framebuffer_hdr_tag
+	.tags = (u64) &boot_framebuffer_hdr_tag
 };
 
 
@@ -59,15 +54,7 @@ static void *get_stivale_struct(struct stivale2_struct *stivale2_info, u64 id) {
 }
 
 
-static size_t _strlen(const char *str) {
-	size_t len = 0;
-	while (str[len]) {
-		len++;
-	}
-	return len;
-}
-
-static void (*write_err_ptr)(const char *string, size_t length) = NULL;
+static void (*write_err_ptr)(const char *string, u64 length) = NULL;
 
 #define ERROR_HEADER  "Error: assert failed in '"
 #define ERROR_HEADER2 "': ("
@@ -79,16 +66,16 @@ static void _assert(bool cond, const char *cond_str, const char *func_str, const
 	}
 
 	write_err_ptr(ERROR_HEADER, sizeof(ERROR_HEADER));
-	write_err_ptr(func_str, _strlen(func_str));
+	write_err_ptr(func_str, strlen(func_str));
 	write_err_ptr(ERROR_HEADER2, sizeof(ERROR_HEADER2));
-	write_err_ptr(cond_str, _strlen(cond_str));
+	write_err_ptr(cond_str, strlen(cond_str));
 	write_err_ptr(ERROR_TAIL, sizeof(ERROR_TAIL));
 
 	if (msg == NULL) {
 		return;
 	}
 
-	write_err_ptr(msg, _strlen(msg));
+	write_err_ptr(msg, strlen(msg));
 
 	for (;;) {
 		asm("hlt");
@@ -104,7 +91,7 @@ void _start(struct stivale2_struct *stivale2_info) {
 	if (term_info == NULL) {
 		goto halt;
 	}
-	write_err_ptr = (void (*)(const char*, size_t)) term_info->term_write;
+	write_err_ptr = (void (*)(const char*, u64)) term_info->term_write;
 
 	struct stivale2_struct_tag_framebuffer *fb_info;
 	fb_info = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
@@ -136,8 +123,8 @@ void _start(struct stivale2_struct *stivale2_info) {
 
 	boot_info.mem_info.mem_entries = mem_info->entries;
 	boot_info.mem_info.mem_map	   = (struct mem_entry*) mem_info->memmap;
-	boot_info.mem_info.mem_pmm_base = (uintptr_t) base_addr_info->physical_base_address;
-	boot_info.mem_info.mem_vmm_base = (uintptr_t) base_addr_info->virtual_base_address;
+	boot_info.mem_info.mem_pmm_base = (u64) base_addr_info->physical_base_address;
+	boot_info.mem_info.mem_vmm_base = (u64) base_addr_info->virtual_base_address;
 
 	struct stivale2_struct_tag_modules *modules;
 	modules = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_MODULES_ID);

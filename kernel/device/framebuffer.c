@@ -1,11 +1,10 @@
-#include <common.h>
 #include <device/framebuffer.h>
 #include <memory/pmm.h>
 #include <memory/vmm.h>
-#include <debug.h>
 #include <io/io.h>
 
-#include <device/serial.h>
+#include <common.h>
+#include <debug.h>
 
 
 #define PIXEL_CHANGED 		((u32) 1 << 31)
@@ -81,6 +80,10 @@ static u64 enable_mtrr(u32 *addr, u64 pitch, u64 height) {
 	return 1;
 }
 
+static u64 get_size_in_pages(u64 size) {
+	return size / PAGE_SIZE + (size % PAGE_SIZE == 0 ? 0 : 1);
+}
+
 u64 framebuffer_init(struct fb_info *fb_info) {
 	_fb_info = fb_info;
 	_fb_info->fb_pitch /= 4;
@@ -108,7 +111,7 @@ struct fb_buffer framebuffer_init_buffer(u16 x, u16 y, u16 width, u16 height) {
 	buf.pitch  = buf.width;
 
 	u64 size = buf.height * buf.width * 4;
-	buf.buffer = pmm_alloc(size / PAGE_SIZE + (size % PAGE_SIZE == 0 ? 0 : 1));
+	buf.buffer = (u32*) pmm_alloc(get_size_in_pages(size));
 
 	u64 *dst = (u64*) (buf.buffer);
 	u64 *src = (u64*) (_fb_info->fb_addr + buf.y * _fb_info->fb_pitch + buf.x);
@@ -136,7 +139,7 @@ void framebuffer_deinit_buffer(struct fb_buffer buf) {
 		dst += _fb_info->fb_pitch / 2;
 	}
 
-	pmm_free(buf.buffer, size / PAGE_SIZE + 1);
+	pmm_free((u64) buf.buffer, get_size_in_pages(size));
 }
 
 void framebuffer_draw_glyph(struct fb_buffer buf, u8 *glyph, struct fb_rect *dst, u32 fg, u32 bg) {

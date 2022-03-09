@@ -1,9 +1,11 @@
 #include <process/process.h>
-#include <debug.h>
-#include <string.h>
-#include <common.h>
-#include <kexit.h>
+
 #include <memory/vmm.h>
+
+#include <string.h>
+#include <kexit.h>
+#include <debug.h>
+#include <common.h>
 
 
 struct module_info *_module_info;

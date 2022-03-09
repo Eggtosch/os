@@ -2,7 +2,6 @@
 
 #include <common.h>
 
-#define IO_EOF ((char) -1)
 
 struct io_device {
 	u64 (*read)(struct io_device*, u8*, u64);

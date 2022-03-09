@@ -1,7 +1,7 @@
 #include <console/console.h>
+
 #include <device/framebuffer.h>
 #include <debug.h>
-#include <device/serial.h>
 
 #include <console/font.gen.h>
 

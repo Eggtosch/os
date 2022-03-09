@@ -1,9 +1,11 @@
 #include <vfs/vfs.h>
-#include <common.h>
+
 #include <io/stdio.h>
 #include <memory/pmm.h>
-#include <debug.h>
+
 #include <string.h>
+#include <debug.h>
+#include <common.h>
 
 
 struct vfs_entry {
@@ -22,7 +24,7 @@ static u64 _vfs_cap;
 
 
 void vfs_init(void) {
-	_vfs = pmm_alloc(1);
+	_vfs = (struct vfs_entry*) pmm_alloc(1);
 	_vfs_size = 0;
 	_vfs_cap  = ENTRIES_PER_PAGE;
 	debug(DEBUG_INFO, "Initialized virtual file system (vfs)");
@@ -34,7 +36,7 @@ int vfs_mount(const char *pathname, struct io_device *stream) {
 	}
 
 	if (_vfs_size >= _vfs_cap) {
-		struct vfs_entry *new = pmm_alloc(_vfs_cap * 2 / ENTRIES_PER_PAGE);
+		struct vfs_entry *new = (struct vfs_entry*) pmm_alloc(_vfs_cap * 2 / ENTRIES_PER_PAGE);
 		for (u64 i = 0; i < _vfs_cap; i++) {
 			new[i] = _vfs[i];
 		}
