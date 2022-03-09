@@ -34,7 +34,7 @@ static void handle_control_char(struct io_device *stream, u8 c) {
 		_io->x_pos = 0;
 		_io->y_pos += _io->font->font_height;
 		if (_io->flush_on_newline) {
-			framebuffer_present(_io->fb);
+			console_flush(stream);
 		}
 		return;
 	} else if (c == '\r') {

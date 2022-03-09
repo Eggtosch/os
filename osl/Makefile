@@ -5,10 +5,9 @@ all: $(OSL)
 
 CC      := x86_64-elf-gcc
 LD      := x86_64-elf-ld
-OBJCOPY := x86_64-elf-objcopy
 
 CFLAGS =												\
-	-I. -nostdinc										\
+	-Isrc -nostdinc										\
 	-Wall -Wextra										\
 	-O2 -pipe											\
 	-ffreestanding -fno-stack-protector					\

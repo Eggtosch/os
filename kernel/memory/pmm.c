@@ -2,6 +2,7 @@
 #include <debug.h>
 #include <io/stdio.h>
 #include <kexit.h>
+#include <string.h>
 
 
 struct mem_bitmap {
@@ -164,7 +165,7 @@ void *pmm_alloc(size_t page_count) {
 				cache_lowest_free_page_from(i);
 			}
 			uintptr_t ptr = start_page * PAGE_SIZE;
-			return (void*) PHYSICAL_TO_VIRTUAL(ptr);
+			return memset((void*) PHYSICAL_TO_VIRTUAL(ptr), 0, page_count * PAGE_SIZE);
 		}
 	}
 	debug(DEBUG_INFO, "Out of memory!");

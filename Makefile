@@ -42,7 +42,7 @@ fonts:
 
 .PHONY: run r
 run r:
-	@qemu-system-x86_64 -serial stdio -s -drive format=raw,file=$(ISO)
+	@qemu-system-x86_64 -enable-kvm -serial stdio -s -drive format=raw,file=$(ISO)
 
 .PHONY: install i
 install i:

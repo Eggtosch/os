@@ -1,4 +1,18 @@
-void _start(const char *program, unsigned long progsize) {
-	asm volatile("int $0x80" :: "a"(0x1), "b"(program), "c"(progsize) : );
-	while(1);
+#include <common.h>
+#include <syscall.h>
+
+
+void _start(const char *program, u64 progsize) {
+	struct fb_buffer fb = {
+		.x = 0,
+		.y = 0,
+		.width  = 400,
+		.height = 400
+	};
+	sys_fb_init(&fb);
+	for (u64 i = 0; i < fb.width * fb.height; i++) {
+		fb.buffer[i] = 0x80ff0000;
+	}
+	sys_fb_present(&fb);
+	sys_exit();
 }
