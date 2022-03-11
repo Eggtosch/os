@@ -1,12 +1,14 @@
 #include <syscall/syscall.h>
+
 #include <syscall/gdt.h>
 #include <interrupts/interrupts.h>
-#include <common.h>
-#include <debug.h>
-#include <io/stdio.h>
 #include <vfs/vfs.h>
 #include <device/framebuffer.h>
 #include <memory/vmm.h>
+#include <io/stdio.h>
+
+#include <debug.h>
+#include <common.h>
 
 
 static u64 sys_open(struct cpu_state *cpu_state) {

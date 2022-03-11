@@ -219,7 +219,7 @@ void vfprintf(struct io_device *stream, const char *fmt, va_list args) {
 			}
 			case 's': {
 				const char *s = va_arg(args, char*);
-				size_t len = strlen(s);
+				u64 len = strlen(s);
 				len = (precision && precision < len) ? precision : len;
 				if (!(flags & FLAGS_LEFT)) {
 					while (len < precision) {

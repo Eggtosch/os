@@ -1,5 +1,5 @@
-#include <common.h>
 #include <syscall.h>
+#include <common.h>
 
 
 void _start(const char *program, u64 progsize) {

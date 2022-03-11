@@ -11,9 +11,6 @@ typedef unsigned short u16;
 typedef unsigned int   u32;
 typedef unsigned long  u64;
 
-typedef u64            size_t;
-typedef u64            uintptr_t;
-
 static_assert(sizeof(i8)  == 1);
 static_assert(sizeof(i16) == 2);
 static_assert(sizeof(i32) == 4);

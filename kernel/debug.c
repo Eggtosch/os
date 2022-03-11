@@ -1,8 +1,11 @@
 #include <debug.h>
+
 #include <common.h>
+
 #include <io/stdio.h>
 #include <device/serial.h>
 #include <console/console.h>
+
 
 static const char *debug_levels[] = {"[INFO] ", "[WARN] ", "[ERROR]", "[SINFO]"};
 static const char *debug_colors[] = {"", "\033[33m", "\033[31m", ""};

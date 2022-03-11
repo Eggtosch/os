@@ -1,6 +1,5 @@
-#include <io/io.h>
 #include <device/serial.h>
-#include <debug.h>
+#include <io/io.h>
 
 
 #define COM1 0x3f8

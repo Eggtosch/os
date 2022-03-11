@@ -1,10 +1,11 @@
 #include <device/keyboard.h>
+
 #include <interrupts/interrupts.h>
 #include <device/pic.h>
 #include <io/io.h>
-#include <debug.h>
-#include <io/stdio.h>
 #include <vfs/vfs.h>
+
+#include <debug.h>
 
 
 #define KEYBOARD_DATA (0x60)

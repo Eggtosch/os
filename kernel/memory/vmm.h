@@ -1,5 +1,8 @@
 #pragma once
 
+#include <common.h>
+
+
 #define VMM_USER_CODE      (0x8000000000)
 #define VMM_USER_STACK_END (0x9000000000)
 #define VMM_USER_STACK_LEN (0x10000)

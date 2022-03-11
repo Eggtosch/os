@@ -1,8 +1,10 @@
 #include <interrupts/interrupts.h>
+
 #include <interrupts/idt.h>
+#include <device/pic.h>
+
 #include <debug.h>
 #include <common.h>
-#include <device/pic.h>
 
 
 static const char *exception_names[] = {

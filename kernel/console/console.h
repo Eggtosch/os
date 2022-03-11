@@ -2,6 +2,7 @@
 
 #include <io/stdio.h>
 
+
 extern struct io_device *console_io;
 
 #define COLOR_BLACK  (0x00000000)

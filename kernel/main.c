@@ -1,8 +1,10 @@
 #include <boot/boot_info.h>
 
-#include <device/framebuffer.h>
 #include <device/serial.h>
+#include <device/framebuffer.h>
 #include <console/console.h>
+#include <io/stdio.h>
+#include <debug.h>
 
 #include <memory/pmm.h>
 #include <memory/vmm.h>
@@ -14,9 +16,6 @@
 #include <device/keyboard.h>
 
 #include <process/process.h>
-
-#include <io/stdio.h>
-#include <debug.h>
 
 
 void kmain(struct boot_info *boot_info) {
