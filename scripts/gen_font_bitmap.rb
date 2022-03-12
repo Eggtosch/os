@@ -126,6 +126,8 @@ template = %{/*
 
 #pragma once
 
+#include <common.h>
+
 struct font {
 	const char *font_name;
 	u16 font_width;

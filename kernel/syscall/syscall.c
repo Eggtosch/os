@@ -6,14 +6,18 @@
 #include <device/framebuffer.h>
 #include <memory/vmm.h>
 #include <io/stdio.h>
+#include <process/process.h>
 
 #include <debug.h>
 #include <common.h>
 
 
 static u64 sys_open(struct cpu_state *cpu_state) {
-	printf("%#x", cpu_state->rbx);
-	return cpu_state->rax;
+	const char *name = (const char*) cpu_state->rbx;
+	u64 flags        =               cpu_state->rcx;
+	(void) flags;
+	int fd = vfs_open(name);
+	return fd;
 }
 
 static u64 sys_read(struct cpu_state *cpu_state) {
@@ -28,7 +32,14 @@ static u64 sys_read(struct cpu_state *cpu_state) {
 }
 
 static u64 sys_write(struct cpu_state *cpu_state) {
-	return cpu_state->rax;
+	int fd       = (int)   cpu_state->rbx;
+	void *buffer = (void*) cpu_state->rcx;
+	u64 count    =         cpu_state->rdx;
+	struct io_device *stream = vfs_get(fd);
+	if (stream == NULL) {
+		return -1;
+	}
+	return stream->write(stream, buffer, count);
 }
 
 static u64 sys_fb_init(struct cpu_state *cpu_state) {
@@ -55,9 +66,9 @@ static u64 sys_munmap(struct cpu_state *cpu_state) {
 }
 
 static u64 sys_exit(struct cpu_state *cpu_state) {
-	u64 *old_pd = vmm_get_pagedir();
+	struct process *p = process_get(process_current());
 	vmm_set_pagedir(NULL);
-	vmm_pagedir_destroy(old_pd);
+	vmm_pagedir_destroy(p->pagedir);
 	while (1) {
 		asm volatile("hlt");
 	}
@@ -79,8 +90,10 @@ u64 (*_handlers[])(struct cpu_state*) = {
 
 
 static void syscall_handle(struct cpu_state *cpu_state) {
-	debug(DEBUG_INFO, "syscall %#x", cpu_state->rax);
 	u64 syscall_number = cpu_state->rax;
+	if (syscall_number == 0x10) {
+		debug(DEBUG_INFO, "%#x", cpu_state->rbx);
+	}
 	if (syscall_number >= sizeof(_handlers) / sizeof(_handlers[0])) {
 		cpu_state->rax = -1;
 	} else {

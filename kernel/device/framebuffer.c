@@ -2,6 +2,7 @@
 #include <memory/pmm.h>
 #include <memory/vmm.h>
 #include <io/io.h>
+#include <process/process.h>
 
 #include <common.h>
 #include <debug.h>
@@ -35,13 +36,13 @@ static bool mtrr_range_overlap(u64 base1, u64 mask1, u64 base2, u64 size2) {
 }
 
 static u64 alignup_power2(u64 value, u64 align) {
-	for (u64 aligned = 1;; aligned *= 2) {
+	for (u64 aligned = align;; aligned *= 2) {
 		if (aligned >= value) {
 			value = aligned;
 			break;
 		}
 	}
-	return ((value + align - 1) / align) * align;
+	return value;
 }
 
 static u64 enable_mtrr(u32 *addr, u64 pitch, u64 height) {
@@ -55,7 +56,7 @@ static u64 enable_mtrr(u32 *addr, u64 pitch, u64 height) {
 		return 1;
 
 	u8 max_phys_addr = eax & 0xff;
-	u64 base = VIRTUAL_TO_PHYSICAL((u64) addr);
+	u64 base = pmm_to_phys((u64) addr);
 	u64 size = alignup_power2(pitch * height, PAGE_SIZE);
 	u64 mask = (((u64) 1 << max_phys_addr) - 1) & ~(size - 1);
 
@@ -232,7 +233,8 @@ int framebuffer_init_user(struct fb_buffer_user *buf) {
 
 	u64 size = buf->height * buf->width * 4;
 	buf->buffer = (u32*) VMM_USER_FB;
-	vmm_map(NULL, (u64) buf->buffer, size);
+	struct process *proc = process_get(process_current());
+	vmm_map(proc->pagedir, (u64) buf->buffer, size);
 
 	return 0;
 }

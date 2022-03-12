@@ -1,22 +1,22 @@
 OSL     := ../bin/osl.bin
-
-.PHONY: all
-all: $(OSL)
+OSL_ELF := ../bin/osl.elf
 
 CC      := x86_64-elf-gcc
 LD      := x86_64-elf-ld
+OBJCOPY := x86_64-elf-objcopy
 
 CFLAGS =												\
 	-Isrc -nostdinc										\
 	-Wall -Wextra										\
-	-O2 -pipe											\
+	-O2 -pipe -mcmodel=large							\
 	-ffreestanding -fno-stack-protector					\
 	-MMD -MP
 
 LDFLAGS =												\
+	-Tosl.ld											\
 	-nostdlib											\
 	-zmax-page-size=0x1000								\
-	-static --oformat=binary
+	-static
 
 
 OBJDIR       := .bin
@@ -37,7 +37,8 @@ $(MKDIRS):
 	mkdir -p $(MKDIRS)
 
 $(OSL): $(OSL_OBJS)
-	$(LD) $(OSL_OBJS) $(LDFLAGS) -o $(OSL)
+	$(LD) $(OSL_OBJS) $(LDFLAGS) -o $(OSL_ELF)
+	$(OBJCOPY) -O binary -j .text -j .data -j .rodata -j .bss $(OSL_ELF) $(OSL)
 
 -include $(HEADER_DEPS)
 $(OBJDIR)/%.o: %.c
@@ -45,4 +46,4 @@ $(OBJDIR)/%.o: %.c
 
 .PHONY: clean
 clean:
-	rm -rf $(OSL) $(OSL_OBJS) $(HEADER_DEPS)
+	rm -rf $(OSL) $(OSL_ELF) $(OSL_OBJS) $(HEADER_DEPS)

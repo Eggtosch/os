@@ -4,7 +4,11 @@
 #define SYSCALL "int $0x80"
 
 
-int sys_open(const char *name, u64 flags);
+int sys_open(const char *name, u64 flags) {
+	u64 fd;
+	asm volatile(SYSCALL : "=a"(fd) : "a"(0x0), "b"(name), "c"(flags) : "memory");
+	return fd;
+}
 
 u64 sys_read(int fd, void *buffer, u64 count) {
 	u64 bytes;
@@ -12,7 +16,11 @@ u64 sys_read(int fd, void *buffer, u64 count) {
 	return bytes;
 }
 
-u64 sys_write(int fd, void *buffer, u64 count);
+u64 sys_write(int fd, void *buffer, u64 count) {
+	u64 bytes;
+	asm volatile(SYSCALL : "=a"(bytes) : "a"(0x2), "b"(fd), "c"(buffer), "d"(count) : "memory");
+	return bytes;
+}
 
 int sys_fb_init(struct fb_buffer *fb_buffer) {
 	u64 success;

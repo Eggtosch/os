@@ -1,5 +1,6 @@
 #include <device/serial.h>
 #include <io/io.h>
+#include <vfs/vfs.h>
 
 
 #define COM1 0x3f8
@@ -52,4 +53,8 @@ void serial_init(void) {
 	_serial_io_impl.read  = serial_recv;
 	_serial_io_impl.write = serial_send;
 	serial_io = &_serial_io_impl;
+}
+
+void serial_init_vfs(void) {
+	vfs_mount("/dev/serial", serial_io);
 }
