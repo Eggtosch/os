@@ -113,7 +113,7 @@ void pmm_init(struct mem_info *mem_info) {
 		}
 
 		if (entry->mem_length >= _bitmap.bitmap_size) {
-			_bitmap.mem_map = (u64*) PHYSICAL_TO_VIRTUAL((u64) entry->mem_base);
+			_bitmap.mem_map = (u64*) pmm_to_virt((u64) entry->mem_base);
 			u64 aligned_bitmap_size = (_bitmap.bitmap_size + (PAGE_SIZE-1)) & ~(PAGE_SIZE-1);
 			entry->mem_base   += aligned_bitmap_size;
 			entry->mem_length -= aligned_bitmap_size;
@@ -133,8 +133,7 @@ void pmm_init(struct mem_info *mem_info) {
 	for (u64 i = 0; i < mem_info->mem_entries; i++) {
 		struct mem_entry *entry = &mem_info->mem_map[i];
 		if (entry->mem_type == MEM_USABLE) {
-			u64 virtaddr = PHYSICAL_TO_VIRTUAL((u64) entry->mem_base);
-			pmm_free(virtaddr, entry->mem_length / PAGE_SIZE);
+			pmm_free((u64) entry->mem_base, entry->mem_length / PAGE_SIZE);
 		}
 	}
 
@@ -165,9 +164,9 @@ u64 pmm_alloc(u64 page_count) {
 			if (start_page == _bitmap.mem_lowest_free_page) {
 				cache_lowest_free_page_from(i);
 			}
-			u64 ptr = start_page * PAGE_SIZE;
+			u64 ptr = pmm_to_virt(start_page * PAGE_SIZE);
 			memset((void*) ptr, 0, page_count * PAGE_SIZE);
-			return PHYSICAL_TO_VIRTUAL(ptr);
+			return ptr;
 		}
 	}
 	debug(DEBUG_INFO, "Out of memory!");
@@ -175,11 +174,25 @@ u64 pmm_alloc(u64 page_count) {
 }
 
 void pmm_free(u64 ptr, u64 page_count) {
-	u64 index = VIRTUAL_TO_PHYSICAL(ptr) / PAGE_SIZE;
+	u64 index = pmm_to_phys(ptr) / PAGE_SIZE;
 	for (u64 i = 0; i < page_count; i++) {
 		mem_bitmap_unset(index + i);
 	}
 	if (index <= _bitmap.mem_lowest_free_page) {
 		_bitmap.mem_lowest_free_page = index;
 	}
+}
+
+u64 pmm_to_phys(u64 vaddr) {
+	if (vaddr < VIRTUAL_ADDR_OFFSET) {
+		return vaddr;
+	}
+	return vaddr - VIRTUAL_ADDR_OFFSET;
+}
+
+u64 pmm_to_virt(u64 paddr) {
+	if (paddr >= VIRTUAL_ADDR_OFFSET) {
+		return paddr;
+	}
+	return paddr + VIRTUAL_ADDR_OFFSET;
 }

@@ -36,12 +36,14 @@ void kmain(struct boot_info *boot_info) {
 
 	vfs_init();
 
+	serial_init_vfs();
+
 	idt_init();
 	syscall_init(boot_info->stack_addr);
 	keyboard_init();
 
 	process_init(&(boot_info->module_info));
-	process_start("shell.osl");
+	process_create("shell.osl");
 
 	while(1) {
 		asm("hlt");

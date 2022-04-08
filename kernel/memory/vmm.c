@@ -9,18 +9,15 @@
 
 
 static u64 *_kernel_page_dir;
-static u64 _identity_map_index;
 static u64 _higher_half_map_index;
 static u64 _kernel_map_index;
 
 static void save_kernel_pagedir_entries(void) {
-	_identity_map_index    = 512;
 	_higher_half_map_index = 512;
 	_kernel_map_index      = 512;
 	u64 i = 0;
 	for (; i < 512; i++) {
 		if (_kernel_page_dir[i] & 1) {
-			_identity_map_index = i;
 			i++;
 			break;
 		}
@@ -39,8 +36,7 @@ static void save_kernel_pagedir_entries(void) {
 			break;
 		}
 	}
-	if (_identity_map_index == 512 ||
-		_higher_half_map_index == 512 ||
+	if (_higher_half_map_index == 512 ||
 		_kernel_map_index == 512) {
 		debug(DEBUG_INFO, "Could not find relevant entries in kernel page directory!");
 		kexit();
@@ -66,7 +62,7 @@ static void destroy_pd1(u64 *pd1) {
 			pmm_free(addr, 1);
 		}
 	}
-	pmm_free(PHYSICAL_TO_VIRTUAL(entry_to_address(pd1)), 1);
+	pmm_free(entry_to_address(pd1), 1);
 }
 
 static void destroy_pd2(u64 *pd2) {
@@ -76,7 +72,7 @@ static void destroy_pd2(u64 *pd2) {
 			pd2[i2] = 0;
 		}
 	}
-	pmm_free(PHYSICAL_TO_VIRTUAL(entry_to_address(pd2)), 1);
+	pmm_free(entry_to_address(pd2), 1);
 }
 
 static void destroy_pd3(u64 *pd3) {
@@ -85,13 +81,12 @@ static void destroy_pd3(u64 *pd3) {
 			destroy_pd2(next_pd_level(pd3, i3));
 		}
 	}
-	pmm_free(PHYSICAL_TO_VIRTUAL(entry_to_address(pd3)), 1);
+	pmm_free(entry_to_address(pd3), 1);
 }
 
 static void destroy_pd4(u64 *pd4) {
 	for (u64 i4 = 0; i4 < 512; i4++) {
 		if (i4 == _kernel_map_index ||
-			i4 == _identity_map_index ||
 			i4 == _higher_half_map_index) {
 			continue;
 		}
@@ -103,10 +98,11 @@ static void destroy_pd4(u64 *pd4) {
 }
 
 static u64 *get_pagedir_level(u64 *pagedirx, u64 index) {
+	pagedirx = (u64*) pmm_to_virt((u64) pagedirx);
 	if (!(pagedirx[index] & 1)) {
-		pagedirx[index] = VIRTUAL_TO_PHYSICAL(pmm_alloc(1)) | 0b111;
+		pagedirx[index] = pmm_to_phys(pmm_alloc(1)) | 0b111;
 	}
-	return (u64*) (pagedirx[index] & ~511);
+	return (u64*) pmm_to_virt(pagedirx[index] & ~511);
 }
 
 static void vmm_map_page(u64 *pagedir, u64 phys_addr, u64 virt_addr) {
@@ -149,19 +145,18 @@ void vmm_init(void) {
 u64 *vmm_get_pagedir(void) {
 	u64 pd;
 	asm volatile("mov %%cr3, %0" : "=r"(pd) :: "memory");
-	return (u64*) PHYSICAL_TO_VIRTUAL(pd);
+	return (u64*) pmm_to_virt(pd);
 }
 
 void vmm_set_pagedir(u64 *pd) {
 	if (pd == NULL) {
 		pd = _kernel_page_dir;
 	}
-	asm volatile("mov %0, %%cr3" :: "r"(VIRTUAL_TO_PHYSICAL(pd)) : "memory");
+	asm volatile("mov %0, %%cr3" :: "r"(pmm_to_phys((u64) pd)) : "memory");
 }
 
 u64 *vmm_pagedir_create(void) {
 	u64 *pagedir = (u64*) pmm_alloc(1);
-	pagedir[_identity_map_index]    = _kernel_page_dir[_identity_map_index];
 	pagedir[_higher_half_map_index] = _kernel_page_dir[_higher_half_map_index];
 	pagedir[_kernel_map_index]      = _kernel_page_dir[_kernel_map_index];
 	return pagedir;
@@ -179,7 +174,7 @@ void vmm_map(u64 *pagedir, u64 virt_addr, u64 size) {
 		pagedir = vmm_get_pagedir();
 	}
 	u64 pages = get_num_of_pages(size);
-	u64 alloced = VIRTUAL_TO_PHYSICAL(pmm_alloc(pages));
+	u64 alloced = pmm_to_phys(pmm_alloc(pages));
 	for (u64 i = 0; i < pages; i++) {
 		u64 page = alloced + i * PAGE_SIZE;
 		vmm_map_page(pagedir, page, virt_addr + PAGE_SIZE * i);
@@ -191,13 +186,14 @@ void vmm_map_data(u64 *pagedir, u64 virt_addr, void *data, u64 data_size) {
 		pagedir = vmm_get_pagedir();
 	}
 	u64 pages = get_num_of_pages(data_size);
-	u64 alloced = VIRTUAL_TO_PHYSICAL(pmm_alloc(pages));
+	u64 alloced = pmm_to_phys(pmm_alloc(pages));
 	for (u64 i = 0; i < pages; i++) {
 		u64 page = alloced + i * PAGE_SIZE;
 		vmm_map_page(pagedir, page, virt_addr + PAGE_SIZE * i);
 		u64 bytes_to_copy = data_size >= PAGE_SIZE ? PAGE_SIZE : data_size;
 		memcpy((void*) page, data, bytes_to_copy);
 		data_size -= bytes_to_copy;
+		data += bytes_to_copy;
 	}
 }
 
@@ -208,6 +204,6 @@ void vmm_unmap(u64 *pagedir, u64 virt_addr, u64 size) {
 	u64 pages = get_num_of_pages(size);
 	for (u64 i = 0; i < pages; i++) {
 		u64 *phys_addr = vmm_unmap_page(pagedir, virt_addr);
-		pmm_free(PHYSICAL_TO_VIRTUAL(phys_addr), 1);
+		pmm_free((u64) phys_addr, 1);
 	}
 }

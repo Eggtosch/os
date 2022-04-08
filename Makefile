@@ -39,6 +39,7 @@ build b:
 .PHONY: fonts
 fonts:
 	@./scripts/gen_font_bitmap.rb fonts/ kernel/console/font.gen.h 1> /dev/null
+	@cp -u kernel/console/font.gen.h osl/src/framebuffer/font.gen.h
 
 .PHONY: run r
 run r:

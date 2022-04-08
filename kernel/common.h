@@ -34,3 +34,5 @@ typedef _Bool bool;
 #define va_copy(d,s)  __builtin_va_copy(d,s)
 
 #define PAGE_SIZE 0x1000
+
+#define ALIGNUP_PAGE(val) ((val + (PAGE_SIZE - 1)) / PAGE_SIZE * PAGE_SIZE)
