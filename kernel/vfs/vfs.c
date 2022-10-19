@@ -1,10 +1,9 @@
 #include <vfs/vfs.h>
 
-#include <io/stdio.h>
 #include <memory/pmm.h>
 
+#include <io/stdio.h>
 #include <string.h>
-#include <debug.h>
 #include <common.h>
 
 
@@ -13,7 +12,7 @@ struct vfs_entry {
 	char name[248];
 };
 
-static_assert(sizeof(struct vfs_entry) == 256);
+static_assert(sizeof(struct vfs_entry) == 256, "");
 
 #define ENTRIES_PER_PAGE (PAGE_SIZE / sizeof(struct vfs_entry))
 
@@ -27,7 +26,6 @@ void vfs_init(void) {
 	_vfs = (struct vfs_entry*) pmm_alloc(1);
 	_vfs_size = 0;
 	_vfs_cap  = ENTRIES_PER_PAGE;
-	debug(DEBUG_INFO, "Initialized virtual file system (vfs)");
 }
 
 int vfs_mount(const char *pathname, struct io_device *stream) {
@@ -46,12 +44,7 @@ int vfs_mount(const char *pathname, struct io_device *stream) {
 
 	struct vfs_entry *entry = &_vfs[_vfs_size];
 	entry->stream = stream;
-	for (u64 i = 0;; i++) {
-		entry->name[i] = pathname[i];
-		if (pathname[i] == '\0') {
-			break;
-		}
-	}
+	memcpy(entry->name, pathname, strlen(pathname) + 1);
 
 	_vfs_size++;
 	return _vfs_size - 1;
@@ -81,3 +74,11 @@ struct io_device *vfs_get(int fd) {
 	}
 	return _vfs[fd].stream;
 }
+
+void vfs_print_entries(void) {
+	printf("vfs entries:\n");
+	for (u64 i = 0; i < _vfs_size; i++) {
+		printf("    %s\n", _vfs[i].name);
+	}
+}
+

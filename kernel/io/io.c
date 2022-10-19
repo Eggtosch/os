@@ -37,3 +37,4 @@ bool cpuid(u32 leaf, u32 subleaf, u32 *eax, u32 *ebx, u32 *ecx, u32 *edx) {
 						   "a"(leaf), "c"(subleaf));
 	return true;
 }
+

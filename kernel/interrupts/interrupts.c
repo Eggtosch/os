@@ -1,11 +1,9 @@
 #include <interrupts/interrupts.h>
-
 #include <interrupts/idt.h>
-#include <device/pic.h>
+#include <interrupts/pic.h>
+#include <io/stdio.h>
 
-#include <debug.h>
 #include <common.h>
-
 
 static const char *exception_names[] = {
 	"#DE: divide by zero",
@@ -62,16 +60,16 @@ u64 interrupt_handler(u64 rsp) {
 	u32 error_code = cpu_state->error_code;
 
 	if (isr_num < 32) {
-		debug(DEBUG_INFO, "(kernel-panic) %d -> %s(%#x)", isr_num, exception_names[isr_num], error_code);
-		debug(DEBUG_INFO, "Instruction: %p", cpu_state->rip);
+		printf("(kernel-panic) %d -> %s(%#x)\n", isr_num, exception_names[isr_num], error_code);
+		printf("Instruction: %p\n", cpu_state->rip);
 		if (isr_num == 0xe) {
 			u64 cr2;
 			asm volatile("mov %%cr2, %0" : "=r"(cr2) :: "memory");
-			debug(DEBUG_INFO, "fault address: %p, error code: %#x", cr2, error_code);
+			printf("fault address: %p, error code: %#x\n", cr2, error_code);
 		} else if (isr_num == 0xd) {
 			u64 gs;
 			asm volatile("mov %%gs, %0" : "=r"(gs) :: "memory");
-			debug(DEBUG_INFO, "gs: %#x", gs);
+			printf("gs: %#x\n", gs);
 		}
 		while (1) {
 			asm volatile("cli");
@@ -87,3 +85,12 @@ u64 interrupt_handler(u64 rsp) {
 
 	return rsp;
 }
+
+void interrupt_enable(u32 isr_num, bool enable) {
+	if (enable) {
+		pic_clear_mask(isr_num);
+	} else {
+		pic_set_mask(isr_num);
+	}
+}
+

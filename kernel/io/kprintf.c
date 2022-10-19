@@ -9,19 +9,27 @@
 #define FLAGS_SPACE		(1 << 4)
 #define FLAGS_ZERO		(1 << 5)
 
-static void out(struct io_device *stream, char c) {
+static u64 out(struct io_device *stream, char c) {
 	#define BUFLEN (1024)
 	static char _buf[BUFLEN];
 	static u64 _index = 0;
+	static u64 _written = 0;
 
 	if (c == '\0' || _index >= BUFLEN) {
 		stream->write(stream, (u8*) _buf, _index);
 		_index = 0;
-		return;
+		u64 ret = 0;
+		if (c == '\0') {
+			ret = _written;
+			_written = 0;
+		}
+		return ret;
 	}
 
 	_buf[_index] = c;
 	_index++;
+	_written++;
+	return 0;
 
 	#undef BUFLEN
 }
@@ -83,9 +91,9 @@ static void ntoa(struct io_device *stream, u64 value, bool negative, u64 base, u
 	}
 }
 
-void vfprintf(struct io_device *stream, const char *fmt, va_list args) {
+u64 vfprintf(struct io_device *stream, const char *fmt, va_list args) {
 	if (stream == NULL || fmt == NULL) {
-		return;
+		return 0;
 	}
 
 	u64 flags, precision, n;
@@ -260,7 +268,7 @@ void vfprintf(struct io_device *stream, const char *fmt, va_list args) {
 		}
 	}
 
-	out(stream, '\0');
+	return out(stream, '\0');
 }
 
 struct string_io {
@@ -281,37 +289,41 @@ static u64 _string_write(struct io_device *stream, u8 *buf, u64 size) {
 	return i;
 }
 
-void vsnprintf(char *buf, u64 maxlen, const char *fmt, va_list args) {
+u64 vsnprintf(char *buf, u64 maxlen, const char *fmt, va_list args) {
 	struct string_io _io;
 	_io.header.write = _string_write;
 	_io.header.read  = NULL;
 	_io.buf          = buf;
 	_io.maxlen       = maxlen;
 	_io.index        = 0;
-	vfprintf((struct io_device*) &_io, fmt, args);
+	return vfprintf((struct io_device*) &_io, fmt, args);
 }
 
-void snprintf(char *buf, u64 maxlen, const char *fmt, ...) {
+u64 snprintf(char *buf, u64 maxlen, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
-	vsnprintf(buf, maxlen, fmt, args);
+	u64 len = vsnprintf(buf, maxlen, fmt, args);
 	va_end(args);
+	return len;
 }
 
-void printf(const char *fmt, ...) {
+u64 printf(const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
-	vfprintf(stdio, fmt, args);
+	u64 len = vfprintf(stdio, fmt, args);
 	va_end(args);
+	return len;
 }
 
-void vprintf(const char *fmt, va_list args) {
-	vfprintf(stdio, fmt, args);
+u64 vprintf(const char *fmt, va_list args) {
+	return vfprintf(stdio, fmt, args);
 }
 
-void  fprintf(struct io_device *stream, const char *fmt, ...) {
+u64 fprintf(struct io_device *stream, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
-	vfprintf(stream, fmt, args);
+	u64 len = vfprintf(stream, fmt, args);
 	va_end(args);
+	return len;
 }
+

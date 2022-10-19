@@ -20,3 +20,4 @@ asm_load_gdt_and_tss:
 	push rax
 	push rdi
 	retfq
+

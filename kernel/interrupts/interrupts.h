@@ -39,3 +39,5 @@ typedef void (*isr_func)(struct cpu_state*);
 
 
 void interrupt_register(u32 isr_num, isr_func f, u32 int_type);
+void interrupt_enable(u32 isr_num, bool enable);
+

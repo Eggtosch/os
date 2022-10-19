@@ -1,10 +1,6 @@
 #include <boot/boot_info.h>
 
-#include <device/serial.h>
-#include <device/framebuffer.h>
-#include <console/console.h>
 #include <io/stdio.h>
-#include <debug.h>
 
 #include <memory/pmm.h>
 #include <memory/vmm.h>
@@ -13,39 +9,41 @@
 
 #include <interrupts/idt.h>
 #include <syscall/syscall.h>
-#include <device/keyboard.h>
 
+#include <driver/driver.h>
 #include <process/process.h>
 
+struct io_device *serial_get_io_device(void);
+extern driver_init_t __start_driver_init[];
+extern driver_init_t __stop_driver_init[];
 
 void kmain(struct boot_info *boot_info) {
-	serial_init();
-	u64 fb_ret = framebuffer_init(&(boot_info->fb_info));
-	console_init();
-	stdio_init(console_io);
-	debug(DEBUG_INFO, "Initialized serial");
-	debug(DEBUG_INFO, "Initialized framebuffer (write combining %ssupported)",
-						fb_ret != 0 ? "un" : "");
-	debug(DEBUG_INFO, "Initialized console");
-	debug(DEBUG_INFO, "Initialized stdio system");
+	stdio_init(serial_get_io_device());
 
 	pmm_init(&(boot_info->mem_info));
 	vmm_init();
 
-	console_init_buffering(console_io);
-
 	vfs_init();
-
-	serial_init_vfs();
 
 	idt_init();
 	syscall_init(boot_info->stack_addr);
-	keyboard_init();
 
-	process_init(&(boot_info->module_info));
-	process_create("shell.osl");
+	u64 ndrivers = (__stop_driver_init - __start_driver_init);
+	for (u64 i = 0; i < ndrivers; i++) {
+		driver_init_t *init = __start_driver_init + i;
+		printf("Init driver %s\n", init->name);
+		init->func(boot_info);
+	}
+
+	vfs_print_entries();
+
+	printf("free bytes: %d\n", pmm_get_free_bytes());
+
+	//process_init(&(boot_info->module_info));
+	//process_create("shell.osl");
 
 	while(1) {
 		asm("hlt");
 	}
 }
+

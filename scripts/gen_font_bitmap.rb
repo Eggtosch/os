@@ -165,3 +165,4 @@ fonts.each_with_index do |font, n|
 end
 output_header.write("\t{NULL, 0, 0, 0, NULL}\n")
 output_header.write("};\n")
+

@@ -3,8 +3,6 @@
 #include <io/stdio.h>
 #include <string.h>
 #include <kexit.h>
-#include <debug.h>
-
 
 struct mem_bitmap {
 	u64  bitmap_size;
@@ -53,17 +51,6 @@ static const char *get_memtype(u32 mem_type) {
 	}
 }
 
-
-static void cache_lowest_free_page_from(u64 start_page) {
-	u64 npages = _bitmap.mem_size / PAGE_SIZE;
-	for (u64 i = start_page; i < npages; i++) {
-		if (mem_bitmap_check(i) == 0) {
-			_bitmap.mem_lowest_free_page = i;
-			return;
-		}
-	}
-}
-
 static char *to_unit(u64 bytes) {
 	const char *units[] = {"B", "KB", "MB", "GB", "TB"};
 	static char tmp[7];
@@ -76,17 +63,27 @@ static char *to_unit(u64 bytes) {
 	return tmp;
 }
 
+static void cache_lowest_free_page_from(u64 start_page) {
+	u64 npages = _bitmap.mem_size / PAGE_SIZE;
+	for (u64 i = start_page; i < npages; i++) {
+		if (mem_bitmap_check(i) == 0) {
+			_bitmap.mem_lowest_free_page = i;
+			return;
+		}
+	}
+}
+
 void pmm_init(struct mem_info *mem_info) {
 	_mem_info = mem_info;
 	u64 ram_top = 0;
 	struct mem_entry *largest_region = &mem_info->mem_map[0];
 
-	debug(DEBUG_INFO, "Memory Map:");
+	printf("Memory Map:\n");
 
 	for (u64 i = 0; i < mem_info->mem_entries; i++) {
 		struct mem_entry *entry = &mem_info->mem_map[i];
 
-		debug(DEBUG_INFO, "    %#0.16x (%s): %s", entry->mem_base, to_unit(entry->mem_length), get_memtype(entry->mem_type));
+		printf("    %#0.16x (%s): %s\n", entry->mem_base, to_unit(entry->mem_length), get_memtype(entry->mem_type));
 
 		if (entry->mem_type != MEM_USABLE) {
 			continue;
@@ -122,7 +119,6 @@ void pmm_init(struct mem_info *mem_info) {
 	}
 
 	if (_bitmap.mem_map == NULL) {
-		debug(DEBUG_ERROR, "No memory region found big enough to store memory bitmap");
 		kexit();
 	}
 
@@ -140,8 +136,6 @@ void pmm_init(struct mem_info *mem_info) {
 	mem_bitmap_set(0);
 
 	cache_lowest_free_page_from(0);
-
-	debug(DEBUG_INFO, "Initialized PMM, Bitmap at: %p %d bytes", _bitmap.mem_map, _bitmap.bitmap_size);
 }
 
 u64 pmm_alloc(u64 page_count) {
@@ -169,7 +163,6 @@ u64 pmm_alloc(u64 page_count) {
 			return ptr;
 		}
 	}
-	debug(DEBUG_INFO, "Out of memory!");
 	kexit();
 }
 
@@ -181,6 +174,16 @@ void pmm_free(u64 ptr, u64 page_count) {
 	if (index <= _bitmap.mem_lowest_free_page) {
 		_bitmap.mem_lowest_free_page = index;
 	}
+}
+
+u64 pmm_get_free_bytes(void) {
+	u64 bytes_free = 0;
+	for (u64 i = 0; i < _bitmap.bitmap_size / 8; i++) {
+		u64 used_pages = 0;
+		asm("popcnt %0, %1" : "=r"(used_pages) : "r"(_bitmap.mem_map[i]));
+		bytes_free += (64 - used_pages) * PAGE_SIZE;
+	}
+	return bytes_free;
 }
 
 u64 pmm_to_phys(u64 vaddr) {
@@ -196,3 +199,4 @@ u64 pmm_to_virt(u64 paddr) {
 	}
 	return paddr + VIRTUAL_ADDR_OFFSET;
 }
+

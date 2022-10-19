@@ -1,7 +1,7 @@
 KERNEL := ../bin/kernel.elf
 
-CC := x86_64-elf-gcc
-LD := x86_64-elf-ld
+CC := ../cross-compiler/bin/x86_64-elf-gcc
+LD := ../cross-compiler/bin/x86_64-elf-ld
 
 CFLAGS =												\
 	-I. -nostdinc										\
@@ -40,15 +40,21 @@ $(MKDIRS):
 	mkdir -p $(MKDIRS)
 
 $(KERNEL): $(KERNEL_OBJS)
-	$(LD) $(KERNEL_OBJS) $(LDFLAGS) -o $@
+	@$(LD) $(KERNEL_OBJS) $(LDFLAGS) -o $@
+	@echo LD $(@F)
 
 $(OBJDIR)/%.o: %.asm
-	nasm -f elf64 $< -o $@
+	@nasm -f elf64 $< -o $@
+	@echo ASM $(@F)
 
 -include $(HEADER_DEPS)
 $(OBJDIR)/%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@
+	@echo CC $(@F)
 
 .PHONY: clean
 clean:
-	rm -rf $(KERNEL) $(KERNEL_OBJS) $(HEADER_DEPS)
+	rm -rf $(KERNEL)
+	rm -rf $(KERNEL_OBJS)
+	rm -rf $(HEADER_DEPS)
+

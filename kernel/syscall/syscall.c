@@ -3,12 +3,10 @@
 #include <syscall/gdt.h>
 #include <interrupts/interrupts.h>
 #include <vfs/vfs.h>
-#include <device/framebuffer.h>
 #include <memory/vmm.h>
 #include <io/stdio.h>
 #include <process/process.h>
 
-#include <debug.h>
 #include <common.h>
 
 
@@ -42,21 +40,6 @@ static u64 sys_write(struct cpu_state *cpu_state) {
 	return stream->write(stream, buffer, count);
 }
 
-static u64 sys_fb_init(struct cpu_state *cpu_state) {
-	struct fb_buffer_user *buf = (struct fb_buffer_user*) cpu_state->rbx;
-	return (u64) framebuffer_init_user(buf);
-}
-
-static u64 sys_fb_deinit(struct cpu_state *cpu_state) {
-	struct fb_buffer_user *buf = (struct fb_buffer_user*) cpu_state->rbx;
-	return (u64) framebuffer_deinit_user(buf);
-}
-
-static u64 sys_fb_present(struct cpu_state *cpu_state) {
-	struct fb_buffer_user *buf = (struct fb_buffer_user*) cpu_state->rbx;
-	return (u64) framebuffer_present_user(buf);
-}
-
 static u64 sys_mmap(struct cpu_state *cpu_state) {
 	return cpu_state->rax;
 }
@@ -80,9 +63,6 @@ u64 (*_handlers[])(struct cpu_state*) = {
 	sys_open,
 	sys_read,
 	sys_write,
-	sys_fb_init,
-	sys_fb_deinit,
-	sys_fb_present,
 	sys_mmap,
 	sys_munmap,
 	sys_exit
@@ -91,9 +71,6 @@ u64 (*_handlers[])(struct cpu_state*) = {
 
 static void syscall_handle(struct cpu_state *cpu_state) {
 	u64 syscall_number = cpu_state->rax;
-	if (syscall_number == 0x10) {
-		debug(DEBUG_INFO, "%#x", cpu_state->rbx);
-	}
 	if (syscall_number >= sizeof(_handlers) / sizeof(_handlers[0])) {
 		cpu_state->rax = -1;
 	} else {
@@ -105,5 +82,5 @@ static void syscall_handle(struct cpu_state *cpu_state) {
 void syscall_init(void *kernel_stack) {
 	gdt_init(kernel_stack);
 	interrupt_register(INT_SYSCALL, syscall_handle, INT_USER);
-	debug(DEBUG_INFO, "Initialized syscalls");
 }
+

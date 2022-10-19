@@ -1,8 +1,6 @@
 #include <console/console.h>
 
-#include <device/framebuffer.h>
-#include <debug.h>
-
+#include <console/framebuffer.h>
 #include <console/font.gen.h>
 
 struct console_io {
@@ -112,7 +110,6 @@ void console_init(void) {
 void console_init_buffering(struct io_device *stream) {
 	struct console_io *_io = (struct console_io*) stream;
 	_io->fb = framebuffer_init_buffer(0, 0, 10000, 10000);
-	debug(DEBUG_INFO, "Initialized double buffering for framebuffer");
 }
 
 void console_set_fgcolor(struct io_device *stream, u32 color) {
@@ -142,3 +139,4 @@ void console_clear(struct io_device *stream) {
 	_io->x_pos = 0;
 	_io->y_pos = 0;
 }
+

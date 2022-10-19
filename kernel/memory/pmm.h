@@ -9,5 +9,7 @@
 void pmm_init(struct mem_info *mem_info);
 u64  pmm_alloc(u64 page_count);
 void pmm_free(u64 ptr, u64 page_count);
+u64  pmm_get_free_bytes(void);
 u64  pmm_to_phys(u64 vaddr);
 u64  pmm_to_virt(u64 paddr);
+

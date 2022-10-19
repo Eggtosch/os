@@ -1,11 +1,6 @@
-#include <device/keyboard.h>
-
+#include <driver/driver.h>
 #include <interrupts/interrupts.h>
-#include <device/pic.h>
 #include <io/io.h>
-#include <vfs/vfs.h>
-
-#include <debug.h>
 
 
 #define KEYBOARD_DATA (0x60)
@@ -13,7 +8,6 @@
 
 #define MAX_SCANCODES 1024
 
-static struct io_device _keyboard_io;
 static u8  _scancode_buffer[MAX_SCANCODES];
 static u64 _scancode_count;
 
@@ -46,13 +40,6 @@ static u64 keyboard_read(struct io_device *stream, u8 *buf, u64 size) {
 	return i;
 }
 
-static u64 keyboard_write(struct io_device *stream, u8 *buf, u64 size) {
-	(void) buf;
-	(void) size;
-	(void) stream;
-	return 0;
-}
-
 static void isr_keyboard(struct cpu_state *cpu_state) {
 	(void) cpu_state;
 	if (_scancode_count >= MAX_SCANCODES) {
@@ -62,22 +49,24 @@ static void isr_keyboard(struct cpu_state *cpu_state) {
 	_scancode_count++;
 }
 
-char keyboard_scancode_to_ascii(u8 scancode) {
-	return _scancodes[scancode & 0x7f];
-}
+static struct driver_file driver_files[] = {
+	{"/dev/keyboard", {keyboard_read, NULL, NULL}},
+	{NULL, {NULL, NULL, NULL}}
+};
 
-void keyboard_init(void) {
+static void keyboard_init(struct boot_info *boot_info) {
+	(void) boot_info;
 	interrupt_register(INT_KEYBOARD, isr_keyboard, INT_KERNEL);
 
 	while (io_inb(KEYBOARD_CMD) & 1) {
 		io_inb(KEYBOARD_DATA);
 	}
 
-	_keyboard_io.read  = keyboard_read;
-	_keyboard_io.write = keyboard_write;
 	_scancode_count = 0;
-	vfs_mount("/dev/keyboard", &_keyboard_io);
 
-	pic_clear_mask(INT_KEYBOARD);
-	debug(DEBUG_INFO, "Initialized keyboard driver");
+	interrupt_enable(INT_KEYBOARD, true);
+	driver_register("keyboard", driver_files);
 }
+
+driver_init("keyboard", keyboard_init);
+

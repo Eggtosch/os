@@ -18,3 +18,4 @@ void vmm_pagedir_destroy(u64 *pagedir);
 void vmm_map(u64 *pagedir, u64 virt_addr, u64 size);
 void vmm_map_data(u64 *pagedir, u64 virt_addr, void *data, u64 data_size);
 void vmm_unmap(u64 *pagedir, u64 virt_addr, u64 size);
+

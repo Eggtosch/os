@@ -1,4 +1,4 @@
-#include <device/pic.h>
+#include <interrupts/pic.h>
 #include <io/io.h>
 
 
@@ -73,3 +73,4 @@ void pic_signal_eoi(u64 isr) {
 	}
 	io_outb(PIC1_CMD, 0x20);
 }
+

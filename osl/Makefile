@@ -1,9 +1,9 @@
 OSL     := ../bin/osl.bin
 OSL_ELF := ../bin/osl.elf
 
-CC      := x86_64-elf-gcc
-LD      := x86_64-elf-ld
-OBJCOPY := x86_64-elf-objcopy
+CC      := ../cross-compiler/bin/x86_64-elf-gcc
+LD      := ../cross-compiler/bin/x86_64-elf-ld
+OBJCOPY := ../cross-compiler/bin/x86_64-elf-objcopy
 
 CFLAGS =												\
 	-Isrc -nostdinc										\
@@ -37,13 +37,17 @@ $(MKDIRS):
 	mkdir -p $(MKDIRS)
 
 $(OSL): $(OSL_OBJS)
-	$(LD) $(OSL_OBJS) $(LDFLAGS) -o $(OSL_ELF)
-	$(OBJCOPY) -O binary -j .text -j .data -j .rodata -j .bss $(OSL_ELF) $(OSL)
+	@$(LD) $(OSL_OBJS) $(LDFLAGS) -o $(OSL_ELF)
+	@echo LD $(@F)
+	@$(OBJCOPY) -O binary -j .text -j .data -j .rodata -j .bss $(OSL_ELF) $(OSL)
+	@echo OBJCOPY $(notdir $(OSL_ELF)) '->' $(notdir $(OSL))
 
 -include $(HEADER_DEPS)
 $(OBJDIR)/%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@
+	@echo CC $(@F)
 
 .PHONY: clean
 clean:
 	rm -rf $(OSL) $(OSL_ELF) $(OSL_OBJS) $(HEADER_DEPS)
+

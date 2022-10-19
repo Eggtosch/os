@@ -1,13 +1,7 @@
-#include <device/serial.h>
 #include <io/io.h>
-#include <vfs/vfs.h>
-
+#include <driver/driver.h>
 
 #define COM1 0x3f8
-
-
-static struct io_device _serial_io_impl;
-struct io_device *serial_io;
 
 
 static bool serial_recv_ready(void) {
@@ -41,8 +35,17 @@ static u64 serial_send(struct io_device *stream, u8 *buf, u64 count) {
 	return i;
 }
 
+static struct driver_file driver_files[] = {
+	{"/dev/serial", {serial_recv, serial_send, NULL}},
+	{NULL, {NULL, NULL, NULL}}
+};
 
-void serial_init(void) {
+struct io_device *serial_get_io_device(void) {
+	return &driver_files[0].stream;
+}
+
+static void serial_init(struct boot_info *boot_info) {
+	(void) boot_info;
 	io_outb(COM1 + 1, 0x00);
 	io_outb(COM1 + 3, 0x80);
 	io_outb(COM1 + 0, 0x03);
@@ -50,11 +53,8 @@ void serial_init(void) {
 	io_outb(COM1 + 3, 0x03);
 	io_outb(COM1 + 2, 0xC7);
 	io_outb(COM1 + 4, 0x0B);
-	_serial_io_impl.read  = serial_recv;
-	_serial_io_impl.write = serial_send;
-	serial_io = &_serial_io_impl;
+	driver_register("serial", driver_files);
 }
 
-void serial_init_vfs(void) {
-	vfs_mount("/dev/serial", serial_io);
-}
+driver_init("serial", serial_init);
+

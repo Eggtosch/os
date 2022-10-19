@@ -59,9 +59,9 @@ struct gdt_ptr {
 	u64 base;
 } __attribute__((packed));
 
-static_assert(sizeof(struct gdt_entry) == 8);
-static_assert(sizeof(struct gdt) == 11 * sizeof(struct gdt_entry));
-static_assert(sizeof(struct tss) == 104);
+static_assert(sizeof(struct gdt_entry) == 8, "");
+static_assert(sizeof(struct gdt) == 11 * sizeof(struct gdt_entry), "");
+static_assert(sizeof(struct tss) == 104, "");
 
 
 static struct gdt _gdt;
@@ -122,3 +122,4 @@ void gdt_init(void *kernel_stack) {
 
 	asm_load_gdt_and_tss(&new_gdt_ptr);
 }
+

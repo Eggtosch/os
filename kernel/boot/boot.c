@@ -112,7 +112,13 @@ void _start(struct stivale2_struct *stivale2_info) {
 	base_addr_info = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_KERNEL_BASE_ADDRESS_ID);
 	assert(base_addr_info != NULL, "No base address info available!\n");
 
+	struct stivale2_struct_tag_modules *modules;
+	modules = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_MODULES_ID);
+	assert(modules != NULL, "No kernel module info available!\n");
+
 	static struct boot_info boot_info;
+
+	boot_info.early_boot_print = write_err_ptr;
 
 	boot_info.stack_addr = (void*) os_stack + sizeof(os_stack);
 
@@ -126,10 +132,6 @@ void _start(struct stivale2_struct *stivale2_info) {
 	boot_info.mem_info.mem_pmm_base = (u64) base_addr_info->physical_base_address;
 	boot_info.mem_info.mem_vmm_base = (u64) base_addr_info->virtual_base_address;
 
-	struct stivale2_struct_tag_modules *modules;
-	modules = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_MODULES_ID);
-	assert(modules != NULL, "No kernel module info available!\n");
-
 	boot_info.module_info.module_count = modules->module_count;
 	boot_info.module_info.modules      = (struct kernel_module*) modules->modules;
 
@@ -140,3 +142,4 @@ void _start(struct stivale2_struct *stivale2_info) {
 		asm("hlt");
 	}
 }
+

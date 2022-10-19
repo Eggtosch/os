@@ -1,23 +1,10 @@
 #include <syscall.h>
 #include <common.h>
-#include <framebuffer/framebuffer.h>
-
-
-struct fb_buffer _fb = {
-	.x = 0, .y = 0,
-	.width = 0xffff, .height = 0xffff
-};
 
 
 void _start(const char *program, u64 progsize) {
 	(void) program;
 	(void) progsize;
-	/*fb_init(&_fb);
-	for (u64 i = 0; i < 0xff; i++) {
-		fb_clear(&_fb, i << 16 | i << 8 | i);
-		fb_present(&_fb);
-	}
-	fb_deinit(&_fb);*/
 	int fd = sys_open("/dev/serial", 0);
 	if (fd < 0) {
 		sys_exit();

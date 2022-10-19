@@ -17,27 +17,34 @@ SECTIONS
 	. = 0xffffffff80000000;
 
 	.text : {
-		*(.text .text.*)
+		*(.text .text.*);
 	} :text
 
 	. += CONSTANT(MAXPAGESIZE);
 
 	.stivale2hdr : {
-		KEEP(*(.stivale2hdr))
+		KEEP(*(.stivale2hdr));
+	} :rodata
+
+	.driver_init : {
+		__start_driver_init = .;
+		KEEP(*(.driver_init));
+		__stop_driver_init = .;
 	} :rodata
 
 	.rodata : {
-		*(.rodata .rodata.*)
+		*(.rodata .rodata.*);
 	} :rodata
 
 	. += CONSTANT(MAXPAGESIZE);
 
 	.data : {
-		*(.data .data.*)
+		*(.data .data.*);
 	} :data
 
 	.bss : {
-		*(COMMON)
-		*(.bss .bss.*)
+		*(COMMON);
+		*(.bss .bss.*);
 	} :data
 }
+

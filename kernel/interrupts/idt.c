@@ -1,8 +1,5 @@
 #include <interrupts/idt.h>
-
-#include <device/pic.h>
-
-#include <debug.h>
+#include <interrupts/pic.h>
 
 
 struct idt_descriptor {
@@ -61,6 +58,5 @@ void idt_init(void) {
 	_idt_ptr.base  = (u64) &_idt;
 
 	asm_load_idt(&_idt_ptr);
-
-	debug(DEBUG_INFO, "Initialized idt");
 }
+

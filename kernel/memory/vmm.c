@@ -4,7 +4,6 @@
 
 #include <string.h>
 #include <kexit.h>
-#include <debug.h>
 #include <common.h>
 
 
@@ -38,7 +37,6 @@ static void save_kernel_pagedir_entries(void) {
 	}
 	if (_higher_half_map_index == 512 ||
 		_kernel_map_index == 512) {
-		debug(DEBUG_INFO, "Could not find relevant entries in kernel page directory!");
 		kexit();
 	}
 }
@@ -139,7 +137,6 @@ static u64 *vmm_unmap_page(u64 *pagedir, u64 virt_addr) {
 void vmm_init(void) {
 	_kernel_page_dir = vmm_get_pagedir();
 	save_kernel_pagedir_entries();
-	debug(DEBUG_INFO, "Initialized VMM: Kernel Page Directory at %p", _kernel_page_dir);
 }
 
 u64 *vmm_get_pagedir(void) {
@@ -207,3 +204,4 @@ void vmm_unmap(u64 *pagedir, u64 virt_addr, u64 size) {
 		pmm_free((u64) phys_addr, 1);
 	}
 }
+

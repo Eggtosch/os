@@ -4,7 +4,6 @@
 
 #include <string.h>
 #include <kexit.h>
-#include <debug.h>
 #include <common.h>
 
 
@@ -53,10 +52,7 @@ void process_init(struct module_info *module_info) {
 	search_module("osl", &_osl_addr, &_osl_size);
 
 	if (_osl_addr == NULL) {
-		debug(DEBUG_ERROR, "OSL module needed for processes was not found in loaded kernel modules!");
 		kexit();
-	} else {
-		debug(DEBUG_INFO, "found osl binary: %p, %#x", _osl_addr, _osl_size);
 	}
 }
 
@@ -65,13 +61,11 @@ u64 process_create(const char *name) {
 	u64 prog_size;
 	search_module(name, (u8**) &prog, &prog_size);
 	if (prog == NULL) {
-		debug(DEBUG_ERROR, "could not find program %s", name);
 		return 0;
 	}
 
 	u64 pid = first_free_process();
 	if (pid == 0) {
-		debug(DEBUG_ERROR, "max number of processes reached: %d", MAX_PROCESSES - 1);
 		return 0;
 	}
 
@@ -98,3 +92,4 @@ struct process *process_get(u64 pid) {
 u64 process_current(void) {
 	return _current_process;
 }
+
