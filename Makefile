@@ -18,22 +18,28 @@ LOG_DD      := $(LOG_DIR)/dd.log
 
 .PHONY: build
 build:
-	mkdir -p bin
+	@# create needed directories
+	mkdir -p bin $(FS_BOOT_DIR) $(FS_MODULES_DIR) $(LOG_DIR)
+	@# make kernel and osl submodules
 	make --no-print-directory -C kernel all -j$(shell nproc)
 	make --no-print-directory -C osl all -j$(shell nproc)
-	mkdir -p $(FS_BOOT_DIR) $(FS_MODULES_DIR) $(LOG_DIR)
+	@# copy kernel runtime files
 	cp -u $(BOOT_FILES) $(FS_BOOT_DIR)
 	cp -u $(KERNEL_MODULES) $(FS_MODULES_DIR)
-	xorriso -as mkisofs -b boot/limine-hdd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
+	@# create iso file from directory
+	@$(eval ISO_CMD := xorriso -as mkisofs -b boot/limine-hdd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
 			--efi-boot boot/limine-eltorito-efi.bin -efi-boot-part --efi-boot-image --protective-msdos-label \
-			fs/ -o $(ISO) 2> $(LOG_XORRISO) || (cat $(LOG_XORRISO) && false)
+			fs/ -o $(ISO))
+	@$(ISO_CMD) 2> $(LOG_XORRISO) || (cat $(LOG_XORRISO) && false)
+	@echo $(ISO_CMD)
+	@# install limine bootloader to iso
 	@./limine/limine-install $(ISO) 2> $(LOG_LIMINE)  || (cat $(LOG_LIMINE) && false)
 	@echo ./limine/limine-install $(ISO)
 
 .PHONY: fonts
 fonts:
-	./scripts/gen_font_bitmap.rb fonts/ kernel/console/font.gen.h 1> /dev/null
-	cp -u kernel/console/font.gen.h osl/src/framebuffer/font.gen.h
+	./scripts/gen_font_bitmap.rb fonts/ kernel/console/font.gen.h
+	cp -u kernel/console/font.gen.h osl/src/font.gen.h
 
 .PHONY: run
 run: build
