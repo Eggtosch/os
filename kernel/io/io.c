@@ -11,6 +11,11 @@ u8 io_inb(u16 port) {
 	return ret;
 }
 
+u8 io_outinb(u16 port_out, u8 value_out, u16 port_in) {
+	io_outb(port_out, value_out);
+	return io_inb(port_in);
+}
+
 void io_wait(void) {
 	io_inb(0x80);
 }

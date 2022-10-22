@@ -5,6 +5,7 @@
 
 void io_outb(u16 port, u8 value);
 u8   io_inb(u16 port);
+u8   io_outinb(u16 port_out, u8 value_out, u16 port_in);
 void io_wait(void);
 
 u64  rdmsr(u32 msr);

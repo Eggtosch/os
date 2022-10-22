@@ -14,6 +14,7 @@
 #include <process/process.h>
 
 struct io_device *serial_get_io_device(void);
+u64 time(void);
 extern driver_init_t __start_driver_init[];
 extern driver_init_t __stop_driver_init[];
 
@@ -31,7 +32,6 @@ void kmain(struct boot_info *boot_info) {
 	u64 ndrivers = (__stop_driver_init - __start_driver_init);
 	for (u64 i = 0; i < ndrivers; i++) {
 		driver_init_t *init = __start_driver_init + i;
-		printf("Init driver %s\n", init->name);
 		init->func(boot_info);
 	}
 
@@ -39,11 +39,23 @@ void kmain(struct boot_info *boot_info) {
 
 	printf("free bytes: %d\n", pmm_get_free_bytes());
 
-	//process_init(&(boot_info->module_info));
-	//process_create("shell.osl");
+	struct io_device *dev = vfs_get(vfs_open("/dev/date"));
+	u64 t = time();
 
 	while(1) {
 		asm("hlt");
+
+		if (time() == t) {
+			continue;
+		}
+		t = time();
+
+		char datebuf[100];
+		u64 len = dev->read(dev, (u8*) datebuf, 100);
+
+		printf("%s\n", datebuf);
+		boot_info->early_boot_print(datebuf, len);
+		boot_info->early_boot_print("\n", 1);
 	}
 }
 
