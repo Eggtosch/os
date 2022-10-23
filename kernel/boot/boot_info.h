@@ -16,7 +16,7 @@ enum MEM_TYPE {
 
 struct boot_info {
 
-	void (*early_boot_print)(const char *msg, u64 msg_len);
+	void (*fb_print)(const char *msg, u64 len);
 
 	void *stack_addr;
 
@@ -54,4 +54,6 @@ struct boot_info {
 	} module_info;
 
 };
+
+struct boot_info *boot_info_get(void);
 

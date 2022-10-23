@@ -2,7 +2,7 @@
 
 #include <io/stdio.h>
 #include <string.h>
-#include <kexit.h>
+#include <panic.h>
 
 struct mem_bitmap {
 	u64  bitmap_size;
@@ -119,7 +119,7 @@ void pmm_init(struct mem_info *mem_info) {
 	}
 
 	if (_bitmap.mem_map == NULL) {
-		kexit();
+		panic("could not find a memory region big enough for the pmm bitmap");
 	}
 
 	for (u64 i = 0; i < _bitmap.bitmap_size / 8; i++) {
@@ -163,7 +163,7 @@ u64 pmm_alloc(u64 page_count) {
 			return ptr;
 		}
 	}
-	kexit();
+	panic("out of memory: requested %d pages", page_count);
 }
 
 void pmm_free(u64 ptr, u64 page_count) {

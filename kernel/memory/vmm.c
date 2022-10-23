@@ -3,7 +3,7 @@
 #include <memory/pmm.h>
 
 #include <string.h>
-#include <kexit.h>
+#include <panic.h>
 #include <common.h>
 
 
@@ -35,9 +35,8 @@ static void save_kernel_pagedir_entries(void) {
 			break;
 		}
 	}
-	if (_higher_half_map_index == 512 ||
-		_kernel_map_index == 512) {
-		kexit();
+	if (_higher_half_map_index == 512 || _kernel_map_index == 512) {
+		panic("could not determine higher_half identity map or kernel map");
 	}
 }
 

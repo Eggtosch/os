@@ -3,7 +3,7 @@
 #include <memory/vmm.h>
 
 #include <string.h>
-#include <kexit.h>
+#include <panic.h>
 #include <common.h>
 
 
@@ -52,7 +52,7 @@ void process_init(struct module_info *module_info) {
 	search_module("osl", &_osl_addr, &_osl_size);
 
 	if (_osl_addr == NULL) {
-		kexit();
+		panic("could not find osl binary");
 	}
 }
 

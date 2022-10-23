@@ -83,6 +83,12 @@ static void _assert(bool cond, const char *cond_str, const char *func_str, const
 }
 
 
+static struct boot_info boot_info;
+
+struct boot_info *boot_info_get(void) {
+	return &boot_info;
+}
+
 extern void kmain(struct boot_info *boot_info);
 
 void _start(struct stivale2_struct *stivale2_info) {
@@ -116,9 +122,7 @@ void _start(struct stivale2_struct *stivale2_info) {
 	modules = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_MODULES_ID);
 	assert(modules != NULL, "No kernel module info available!\n");
 
-	static struct boot_info boot_info;
-
-	boot_info.early_boot_print = write_err_ptr;
+	boot_info.fb_print = write_err_ptr;
 
 	boot_info.stack_addr = (void*) os_stack + sizeof(os_stack);
 

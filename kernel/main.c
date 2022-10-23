@@ -11,15 +11,13 @@
 #include <syscall/syscall.h>
 
 #include <driver/driver.h>
-#include <process/process.h>
+#include <driver/util.h>
 
-struct io_device *serial_get_io_device(void);
-u64 time(void);
 extern driver_init_t __start_driver_init[];
 extern driver_init_t __stop_driver_init[];
 
 void kmain(struct boot_info *boot_info) {
-	stdio_init(serial_get_io_device());
+	stdio_init(serial_io_device_get());
 
 	pmm_init(&(boot_info->mem_info));
 	vmm_init();
@@ -54,8 +52,8 @@ void kmain(struct boot_info *boot_info) {
 		u64 len = dev->read(dev, (u8*) datebuf, 100);
 
 		printf("%s\n", datebuf);
-		boot_info->early_boot_print(datebuf, len);
-		boot_info->early_boot_print("\n", 1);
+		boot_info->fb_print(datebuf, len);
+		boot_info->fb_print("\n", 1);
 	}
 }
 

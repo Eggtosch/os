@@ -40,7 +40,7 @@ static struct driver_file driver_files[] = {
 	{NULL, {NULL, NULL, NULL}}
 };
 
-struct io_device *serial_get_io_device(void) {
+struct io_device *serial_io_device_get(void) {
 	return &driver_files[0].stream;
 }
 
