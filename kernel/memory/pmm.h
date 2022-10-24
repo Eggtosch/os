@@ -6,7 +6,7 @@
 
 #define VIRTUAL_ADDR_OFFSET ((u64) 0xffff800000000000)
 
-void pmm_init(struct mem_info *mem_info);
+void pmm_init(struct boot_info *boot_info);
 u64  pmm_alloc(u64 page_count);
 void pmm_free(u64 ptr, u64 page_count);
 u64  pmm_get_free_bytes(void);

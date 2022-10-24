@@ -235,7 +235,7 @@ u64 vfprintf(struct io_device *stream, const char *fmt, va_list args) {
 						out(stream, ' ');
 					}
 				}
-				while (*s) {
+				for (u64 i = 0; i < len; i++) {
 					out(stream, *s);
 					s++;
 				}

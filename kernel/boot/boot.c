@@ -102,13 +102,13 @@ void _start(struct stivale2_struct *stivale2_info) {
 	struct stivale2_struct_tag_framebuffer *fb_info;
 	fb_info = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
 	assert(fb_info != NULL, "No framebuffer available!\n");
-	assert(fb_info->framebuffer_bpp  == 32, "Kernel does not work without 32 bpp framebuffer!\n");
+	assert(fb_info->framebuffer_bpp  == 32, "Kernel does only support 32 bpp framebuffer!\n");
 	assert(fb_info->red_mask_size    ==  8 &&
 		   fb_info->green_mask_size  ==  8 &&
-		   fb_info->blue_mask_size   ==  8, "The color masks are not 8 bits!\n");
+		   fb_info->blue_mask_size   ==  8, "Kernel does only support 8 bit color masks!\n");
 	assert(fb_info->red_mask_shift   == 16 &&
 		   fb_info->green_mask_shift ==  8 &&
-		   fb_info->blue_mask_shift  ==  0, "Color format is not RGB!\n");
+		   fb_info->blue_mask_shift  ==  0, "Kernel does only support RGB color format!\n");
 
 	struct stivale2_struct_tag_memmap *mem_info;
 	mem_info = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_MEMMAP_ID);
@@ -122,9 +122,15 @@ void _start(struct stivale2_struct *stivale2_info) {
 	modules = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_MODULES_ID);
 	assert(modules != NULL, "No kernel module info available!\n");
 
+	struct stivale2_struct_tag_rsdp *rsdp_tag;
+	rsdp_tag = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_RSDP_ID);
+	assert(rsdp_tag != NULL, "No rsdp table pointer found!\n");
+
 	boot_info.fb_print = write_err_ptr;
 
 	boot_info.stack_addr = (void*) os_stack + sizeof(os_stack);
+
+	boot_info.rsdp = (void*) rsdp_tag->rsdp;
 
 	boot_info.fb_info.fb_addr	= (void*) fb_info->framebuffer_addr;
 	boot_info.fb_info.fb_width	= fb_info->framebuffer_width;

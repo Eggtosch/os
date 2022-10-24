@@ -11,14 +11,14 @@ typedef unsigned short u16;
 typedef unsigned int   u32;
 typedef unsigned long  u64;
 
-static_assert(sizeof(i8)  == 1);
-static_assert(sizeof(i16) == 2);
-static_assert(sizeof(i32) == 4);
-static_assert(sizeof(i64) == 8);
-static_assert(sizeof(u8)  == 1);
-static_assert(sizeof(u16) == 2);
-static_assert(sizeof(u32) == 4);
-static_assert(sizeof(u64) == 8);
+static_assert(sizeof(i8)  == 1, "sizeof(i8) != 1");
+static_assert(sizeof(i16) == 2, "sizeof(i16) != 2");
+static_assert(sizeof(i32) == 4, "sizeof(i32) != 4");
+static_assert(sizeof(i64) == 8, "sizeof(i64) != 8");
+static_assert(sizeof(u8)  == 1, "sizeof(u8) != 1");
+static_assert(sizeof(u16) == 2, "sizeof(u16) != 2");
+static_assert(sizeof(u32) == 4, "sizeof(u32) != 4");
+static_assert(sizeof(u64) == 8, "sizeof(u64) != 8");
 
 #define NULL ((void*) 0)
 
@@ -33,6 +33,11 @@ typedef _Bool bool;
 #define va_arg(v,l)   __builtin_va_arg(v,l)
 #define va_copy(d,s)  __builtin_va_copy(d,s)
 
+#define offsetof(type, member) __builtin_offsetof(type, member)
+
+#define abs(x) ((x) >= 0 ? (x) : (-x))
+
 #define PAGE_SIZE 0x1000
 
 #define ALIGNUP_PAGE(val) ((val + (PAGE_SIZE - 1)) / PAGE_SIZE * PAGE_SIZE)
+

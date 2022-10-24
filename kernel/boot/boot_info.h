@@ -17,8 +17,8 @@ enum MEM_TYPE {
 struct boot_info {
 
 	void (*fb_print)(const char *msg, u64 len);
-
 	void *stack_addr;
+	void *rsdp;
 
 	struct fb_info {
 		u32 *fb_addr;

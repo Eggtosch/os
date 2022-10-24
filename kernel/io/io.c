@@ -11,6 +11,12 @@ u8 io_inb(u16 port) {
 	return ret;
 }
 
+u16 io_inw(u16 port) {
+	u16 ret;
+	asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
+		return ret;
+}
+
 u8 io_outinb(u16 port_out, u8 value_out, u16 port_in) {
 	io_outb(port_out, value_out);
 	return io_inb(port_in);

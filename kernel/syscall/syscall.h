@@ -1,4 +1,6 @@
 #pragma once
 
-void syscall_init(void *kernel_stack);
+#include <boot/boot_info.h>
+
+void syscall_init(struct boot_info *boot_info);
 

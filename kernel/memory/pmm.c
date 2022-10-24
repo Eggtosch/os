@@ -73,15 +73,15 @@ static void cache_lowest_free_page_from(u64 start_page) {
 	}
 }
 
-void pmm_init(struct mem_info *mem_info) {
-	_mem_info = mem_info;
+void pmm_init(struct boot_info *boot_info) {
+	_mem_info = &boot_info->mem_info;
 	u64 ram_top = 0;
-	struct mem_entry *largest_region = &mem_info->mem_map[0];
+	struct mem_entry *largest_region = &_mem_info->mem_map[0];
 
 	printf("Memory Map:\n");
 
-	for (u64 i = 0; i < mem_info->mem_entries; i++) {
-		struct mem_entry *entry = &mem_info->mem_map[i];
+	for (u64 i = 0; i < _mem_info->mem_entries; i++) {
+		struct mem_entry *entry = &_mem_info->mem_map[i];
 
 		printf("    %#0.16x (%s): %s\n", entry->mem_base, to_unit(entry->mem_length), get_memtype(entry->mem_type));
 
@@ -102,8 +102,8 @@ void pmm_init(struct mem_info *mem_info) {
 	_bitmap.mem_size    = ram_top;
 	_bitmap.mem_map     = NULL;
 
-	for (u64 i = 0; i < mem_info->mem_entries; i++) {
-		struct mem_entry *entry = &mem_info->mem_map[i];
+	for (u64 i = 0; i < _mem_info->mem_entries; i++) {
+		struct mem_entry *entry = &_mem_info->mem_map[i];
 
 		if (entry->mem_type != MEM_USABLE) {
 			continue;
@@ -126,8 +126,8 @@ void pmm_init(struct mem_info *mem_info) {
 		_bitmap.mem_map[i] = 0xffffffffffffffff;
 	}
 
-	for (u64 i = 0; i < mem_info->mem_entries; i++) {
-		struct mem_entry *entry = &mem_info->mem_map[i];
+	for (u64 i = 0; i < _mem_info->mem_entries; i++) {
+		struct mem_entry *entry = &_mem_info->mem_map[i];
 		if (entry->mem_type == MEM_USABLE) {
 			pmm_free((u64) entry->mem_base, entry->mem_length / PAGE_SIZE);
 		}

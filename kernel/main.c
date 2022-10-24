@@ -5,6 +5,8 @@
 #include <memory/pmm.h>
 #include <memory/vmm.h>
 
+#include <acpi/acpi.h>
+
 #include <vfs/vfs.h>
 
 #include <interrupts/idt.h>
@@ -19,13 +21,15 @@ extern driver_init_t __stop_driver_init[];
 void kmain(struct boot_info *boot_info) {
 	stdio_init(serial_io_device_get());
 
-	pmm_init(&(boot_info->mem_info));
+	pmm_init(boot_info);
 	vmm_init();
+
+	acpi_init(boot_info);
 
 	vfs_init();
 
 	idt_init();
-	syscall_init(boot_info->stack_addr);
+	syscall_init(boot_info);
 
 	u64 ndrivers = (__stop_driver_init - __start_driver_init);
 	for (u64 i = 0; i < ndrivers; i++) {
@@ -38,20 +42,25 @@ void kmain(struct boot_info *boot_info) {
 	printf("free bytes: %d\n", pmm_get_free_bytes());
 
 	struct io_device *dev = vfs_get(vfs_open("/dev/date"));
-	u64 t = time();
+	i64 t = time();
+	i64 time_printed = 0;
 
 	while(1) {
 		asm("hlt");
 
-		if (time() == t) {
+		if (time() != t) {
+			t = time();
 			continue;
 		}
-		t = time();
+
+		if (t == 0 || t == time_printed) {
+			continue;
+		}
+		time_printed = t;
 
 		char datebuf[100];
 		u64 len = dev->read(dev, (u8*) datebuf, 100);
 
-		printf("%s\n", datebuf);
 		boot_info->fb_print(datebuf, len);
 		boot_info->fb_print("\n", 1);
 	}
