@@ -34,7 +34,7 @@ typedef _Bool bool;
 #define va_copy(d,s)  __builtin_va_copy(d,s)
 
 #define offsetof(type, member) __builtin_offsetof(type, member)
-
+#define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 #define abs(x) ((x) >= 0 ? (x) : (-x))
 
 #define PAGE_SIZE 0x1000

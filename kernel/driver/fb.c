@@ -1,6 +1,7 @@
 #include <driver/driver.h>
 #include <memory/pmm.h>
 #include <io/io.h>
+#include <cpu/cpu.h>
 #include <io/stdio.h>
 
 #include <common.h>

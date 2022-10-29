@@ -5,6 +5,7 @@
 #include <memory/pmm.h>
 #include <memory/vmm.h>
 
+#include <cpu/cpu.h>
 #include <acpi/acpi.h>
 
 #include <vfs/vfs.h>
@@ -24,6 +25,8 @@ void kmain(struct boot_info *boot_info) {
 	pmm_init(boot_info);
 	vmm_init();
 
+	cpu_init(boot_info);
+
 	acpi_init(boot_info);
 
 	vfs_init();
@@ -40,6 +43,12 @@ void kmain(struct boot_info *boot_info) {
 	vfs_print_entries();
 
 	printf("free bytes: %d\n", pmm_get_free_bytes());
+
+	char buf[500];
+	u64 len = vfs_read("/dev/cpuinfo", (u8*) buf, 500);
+	printf("%s\n", buf);
+	boot_info->fb_print(buf, len);
+	boot_info->fb_print("\n", 1);
 
 	i64 t = time();
 	i64 time_printed = 0;
@@ -61,7 +70,7 @@ void kmain(struct boot_info *boot_info) {
 		u64 len = vfs_read("/dev/date", (u8*) datebuf, 100);
 
 		boot_info->fb_print(datebuf, len);
-		boot_info->fb_print("\n", 1);
+		boot_info->fb_print("\r", 1);
 	}
 }
 

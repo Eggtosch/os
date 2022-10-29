@@ -1,8 +1,5 @@
 #include <string.h>
 
-#include <common.h>
-
-
 u64 strlen(const char *s) {
 	if (s == NULL) {
 		return 0;
@@ -17,6 +14,9 @@ u64 strlen(const char *s) {
 }
 
 int strcmp(const char *s1, const char *s2) {
+	if (s1 == s2) {
+		return 0;
+	}
 	if (s1 == NULL || s2 == NULL) {
 		return -1;
 	}
@@ -25,6 +25,33 @@ int strcmp(const char *s1, const char *s2) {
 		s2++;
 	}
 	return *s1 - *s2;
+}
+
+u64 strcpy(char *dst, const char *src) {
+	if (dst == NULL || src == NULL) {
+		return 0;
+	}
+	u64 copied = 0;
+	while (*src) {
+		dst[copied++] = *src++;
+	}
+	dst[copied] = '\0';
+	return copied;
+}
+
+u64 strncpy_s(char *dst, const char *src, u64 dst_len) {
+	if (dst == NULL || src == NULL) {
+		return 0;
+	}
+	if (strlen(src) + 1 > dst_len) {
+		return 0;
+	}
+	u64 copied = 0;
+	while (*src) {
+		dst[copied++] = *src++;
+	}
+	dst[copied] = '\0';
+	return copied;
 }
 
 void *memset(void *ptr, int value, u64 num) {
