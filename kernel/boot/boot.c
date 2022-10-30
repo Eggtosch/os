@@ -41,16 +41,16 @@ static struct stivale2_header boot_stivale_hdr = {
 
 
 static void *get_stivale_struct(struct stivale2_struct *stivale2_info, u64 id) {
-    struct stivale2_tag *current_tag = (void*) stivale2_info->tags;
-    for (;;) {
-        if (current_tag == NULL) {
-            return NULL;
-        }
-        if (current_tag->identifier == id) {
-            return current_tag;
-        }
-        current_tag = (void*) current_tag->next;
-    }
+	struct stivale2_tag *current_tag = (void*) stivale2_info->tags;
+	for (;;) {
+		if (current_tag == NULL) {
+			return NULL;
+		}
+		if (current_tag->identifier == id) {
+			return current_tag;
+		}
+		current_tag = (void*) current_tag->next;
+	}
 }
 
 

@@ -1,5 +1,4 @@
-#ifndef __STIVALE__STIVALE2_H__
-#define __STIVALE__STIVALE2_H__
+#pragma once
 
 #include <common.h>
 
@@ -352,4 +351,3 @@ struct stivale2_struct_tag_hhdm {
     u64 addr;
 };
 
-#endif
