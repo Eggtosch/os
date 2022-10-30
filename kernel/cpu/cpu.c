@@ -1,4 +1,6 @@
 #include <cpu/cpu.h>
+#include <acpi/acpi.h>
+#include <io/io.h>
 #include <string.h>
 
 struct cpuid_info {
@@ -34,6 +36,11 @@ bool cpu_has_flag(enum cpuid_flags flag) {
 		return (cpuid_info.basic_flags & (1UL << flag)) != 0;
 	}
 	return (cpuid_info.ext_flags & (1UL << (flag - 64))) != 0;
+}
+
+void cpu_reset(void) {
+	acpi_reset();
+	io_outw(0x604, 0x2000);
 }
 
 bool cpuid(u32 leaf, u32 subleaf, u32 *eax, u32 *ebx, u32 *ecx, u32 *edx) {

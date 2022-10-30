@@ -12,6 +12,26 @@ u16 acpi_get_century_register(void) {
 	return acpi_fadt->century;
 }
 
+bool acpi_reset(void) {
+	if (acpi_fadt->header.revision >= 2 && acpi_fadt->flags & (1 << 10)) {
+		struct generic_addr addr = acpi_fadt->reset_reg;
+		if (addr.addr_space == ADDR_SPACE_SYSTEM_IO) {
+			io_outb(addr.addr, acpi_fadt->reset_value);
+		} else if (addr.addr_space == ADDR_SPACE_SYSTEM_MEMORY) {
+			*(u8*) addr.addr = acpi_fadt->reset_value;
+		} else if (addr.addr_space == ADDR_SPACE_PCI_CONFIG) {
+		}
+	}
+
+	u8 good = 0x02;
+	while (good & 0x02) {
+		good = io_inb(0x64);
+	}
+	io_outb(0x64, 0xFE);
+
+	return false;
+}
+
 static bool rsdp_is_v2(struct rsdp *rsdp) {
 	return rsdp->revision != 0;
 }

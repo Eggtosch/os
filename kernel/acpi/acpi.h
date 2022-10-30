@@ -3,5 +3,6 @@
 #include <boot/boot_info.h>
 
 void acpi_init(struct boot_info *boot_info);
-u16 acpi_get_century_register(void);
+u16  acpi_get_century_register(void);
+bool acpi_reset(void);
 
