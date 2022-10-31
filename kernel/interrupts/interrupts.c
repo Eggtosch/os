@@ -3,7 +3,7 @@
 #include <interrupts/pic.h>
 #include <io/stdio.h>
 
-#include <common.h>
+#include <panic.h>
 
 static const char *exception_names[] = {
 	"#DE: divide by zero",
@@ -60,8 +60,6 @@ u64 interrupt_handler(u64 rsp) {
 	u32 error_code = cpu_state->error_code;
 
 	if (isr_num < 32) {
-		printf("(kernel-panic) %d -> %s(%#x)\n", isr_num, exception_names[isr_num], error_code);
-		printf("Instruction: %p\n", cpu_state->rip);
 		if (isr_num == 0xe) {
 			u64 cr2;
 			asm volatile("mov %%cr2, %0" : "=r"(cr2) :: "memory");
@@ -71,6 +69,7 @@ u64 interrupt_handler(u64 rsp) {
 			asm volatile("mov %%gs, %0" : "=r"(gs) :: "memory");
 			printf("gs: %#x\n", gs);
 		}
+		panic("irq %d -> %s(%#x)\nInstruction: %p\n", isr_num, exception_names[isr_num], error_code, cpu_state->rip);
 		while (1) {
 			asm volatile("cli");
 			asm volatile("hlt");
