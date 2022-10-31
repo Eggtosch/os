@@ -4,8 +4,8 @@ FS_MODULES_DIR := fs/modules
 BOOT_FILES     := bin/kernel.elf					\
 					kernel/boot/limine.cfg			\
 					limine/limine.sys				\
-					limine/limine-hdd.bin			\
-					limine/limine-eltorito-efi.bin
+					limine/limine-cd.bin			\
+					limine/limine-cd-efi.bin
 KERNEL_MODULES := bin/osl.bin programs/shell.osl
 
 ISO := bin/os.iso
@@ -27,14 +27,14 @@ build:
 	cp -u $(BOOT_FILES) $(FS_BOOT_DIR)
 	cp -u $(KERNEL_MODULES) $(FS_MODULES_DIR)
 	@# create iso file from directory
-	@$(eval ISO_CMD := xorriso -as mkisofs -b boot/limine-hdd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
-			--efi-boot boot/limine-eltorito-efi.bin -efi-boot-part --efi-boot-image --protective-msdos-label \
+	@$(eval ISO_CMD := xorriso -as mkisofs -b boot/limine-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
+			--efi-boot boot/limine-cd-efi.bin -efi-boot-part --efi-boot-image --protective-msdos-label \
 			fs/ -o $(ISO))
 	@$(ISO_CMD) 2> $(LOG_XORRISO) || (cat $(LOG_XORRISO) && false)
 	@echo $(ISO_CMD)
 	@# install limine bootloader to iso
-	@./limine/limine-install $(ISO) 2> $(LOG_LIMINE)  || (cat $(LOG_LIMINE) && false)
-	@echo ./limine/limine-install $(ISO)
+	@./limine/limine-deploy $(ISO) 2> $(LOG_LIMINE)  || (cat $(LOG_LIMINE) && false)
+	@echo ./limine/limine-deploy $(ISO)
 
 .PHONY: fonts
 fonts:
