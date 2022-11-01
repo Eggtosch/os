@@ -63,12 +63,3 @@ clean:
 	rm -f $(ISO)
 	rm -rf $(FS_DIR)
 
-
-ALL_C_H_RB_FILES := $(shell find . -type f -name "*.c" -o -name "*.h" -o -name "*.rb")
-IGNORE           := $(shell find . -type f -path "./cross-compiler/*")
-FILTERED_FILES   := $(filter-out $(IGNORE), $(ALL_C_H_RB_FILES))
-
-.PHONY: lines
-lines:
-	@cat $(FILTERED_FILES) | wc -l
-
