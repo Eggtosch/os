@@ -16,9 +16,11 @@ LOG_XORRISO := $(LOG_DIR)/xorriso.log
 LOG_LIMINE  := $(LOG_DIR)/limine-install.log
 LOG_DD      := $(LOG_DIR)/dd.log
 
+LIMINE_DIR := limine
+
 
 .PHONY: build
-build:
+build: | $(LIMINE_DIR)
 	@# create needed directories
 	mkdir -p bin $(FS_BOOT_DIR) $(FS_MODULES_DIR) $(LOG_DIR)
 	@# make kernel and osl submodules
@@ -36,6 +38,16 @@ build:
 	@# install limine bootloader to iso
 	@./limine/limine-deploy $(ISO) 2> $(LOG_LIMINE)  || (cat $(LOG_LIMINE) && false)
 	@echo ./limine/limine-deploy $(ISO)
+
+$(LIMINE_DIR):
+	git clone --depth 1 --branch v4.20221030.0-binary https://github.com/limine-bootloader/limine.git
+	make -C limine
+	rm limine/limine-version* limine/limine-deploy.exe
+	rm limine/*.c limine/*.h
+	rm limine/*.EFI
+	rm limine/Makefile limine/LICENSE.md limine/install-sh
+	rm limine/.gitignore
+	rm -rf limine/.git
 
 .PHONY: fonts
 fonts:

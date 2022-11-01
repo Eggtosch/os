@@ -1,11 +1,12 @@
+# dev-env
 .cache/
+compile_commands.json
+
+# binaries and auto generated
+**/.bin/**/*
 bin/**/*
 cross-compiler/**/*
-doc/**/*
 fs/**/*
+limine/**/*
 log/**/*
-**/.bin/**/*
-*.elf
-*.iso
-compile_commands.json
 
