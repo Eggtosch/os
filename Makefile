@@ -8,7 +8,8 @@ BOOT_FILES     := bin/kernel.elf					\
 					limine/limine-cd-efi.bin
 KERNEL_MODULES := bin/osl.bin programs/shell.osl
 
-ISO := bin/os.iso
+ISO       := bin/os.iso
+QEMU_UEFI := /usr/share/ovmf/OVMF.fd
 
 LOG_DIR     := log
 LOG_XORRISO := $(LOG_DIR)/xorriso.log
@@ -44,6 +45,10 @@ fonts:
 .PHONY: run
 run: build
 	qemu-system-x86_64 -enable-kvm -serial stdio -s -drive format=raw,file=$(ISO)
+
+.PHONY: run-uefi
+run-uefi: build
+	qemu-system-x86_64 -enable-kvm -bios $(QEMU_UEFI) -serial stdio -s -drive format=raw,file=$(ISO)
 
 .PHONY: install
 install:
