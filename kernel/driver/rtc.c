@@ -107,7 +107,7 @@ static u64 rtc_read_time(struct io_device *dev, u8 *buf, u64 buflen) {
 static u64 rtc_read_date(struct io_device *dev, u8 *buf, u64 buflen) {
 	(void) dev;
 	struct time time = rtc_global_time;
-	return snprintf((char*) buf, buflen, "%d.%d.%d %0.2d:%0.2d:%0.2d",
+	return snprintf((char*) buf, buflen, "%0.2d.%0.2d.%d %0.2d:%0.2d:%0.2d",
 		time.day, time.month, time.century * 100 + time.year, time.hours, time.minutes, time.seconds);
 }
 
