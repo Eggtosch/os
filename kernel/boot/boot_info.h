@@ -4,14 +4,27 @@
 
 
 enum MEM_TYPE {
-	MEM_USABLE                 = 0x0001,
-	MEM_RESERVED               = 0x0002,
-	MEM_ACPI_RECLAIMABLE       = 0x0003,
-	MEM_ACPI_NVS               = 0x0004,
-	MEM_BAD_MEMORY             = 0x0005,
-	MEM_BOOTLOADER_RECLAIMABLE = 0x1000,
-	MEM_KERNEL_AND_MODULES     = 0x1001,
-	MEM_FRAMEBUFFER            = 0x1002
+	MEM_USABLE                 = 0,
+	MEM_RESERVED               = 1,
+	MEM_ACPI_RECLAIMABLE       = 2,
+	MEM_ACPI_NVS               = 3,
+	MEM_BAD_MEMORY             = 4,
+	MEM_BOOTLOADER_RECLAIMABLE = 5,
+	MEM_KERNEL_AND_MODULES     = 6,
+	MEM_FRAMEBUFFER            = 7
+};
+
+enum MEDIA_TYPE {
+	MEDIA_GENERIC = 0,
+	MEDIA_OPTICAL = 1,
+	MEDIA_TFTP    = 2
+};
+
+struct uuid {
+	u32 a;
+	u16 b;
+	u16 c;
+	u8 d[8];
 };
 
 struct boot_info {
@@ -33,9 +46,8 @@ struct boot_info {
 		struct mem_entry {
 			void *mem_base;
 			u64 mem_length;
-			u32 mem_type;
-			u32 mem_unused;
-		} *mem_map;
+			u64 mem_type;
+		} **mem_map;
 
 		u64 mem_pmm_base;
 		u64 mem_vmm_base;
@@ -46,9 +58,20 @@ struct boot_info {
 		u64 module_count;
 
 		struct kernel_module {
-			void *begin;
-			void *end;
-			char string[128];
+			u64 revision;
+			void *addr;
+			u64 size;
+			char *path;
+			char *cmdline;
+			u32 media_type;
+			u32 unused;
+			u32 tftp_ip;
+			u32 tftp_port;
+			u32 partition_index;
+			u32 mbr_disk_id;
+			struct uuid gpt_disk_uuid;
+			struct uuid gpt_part_uuid;
+			struct uuid part_uuid;
 		} *modules;
 
 	} module_info;

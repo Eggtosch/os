@@ -23,9 +23,9 @@ static void search_module(const char *module, u8 **addr, u64 *size) {
 
 	for (u32 i = 0; i < nmodules; i++) {
 		struct kernel_module *m = &_module_info->modules[i];
-		if (strcmp(m->string, module) == 0) {
-			*addr = m->begin;
-			*size = m->end - m->begin;
+		if (strcmp(m->path, module) == 0) {
+			*addr = m->addr;
+			*size = m->size;
 			return;
 		}
 	}

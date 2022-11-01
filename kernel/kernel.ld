@@ -22,8 +22,8 @@ SECTIONS
 
 	. += CONSTANT(MAXPAGESIZE);
 
-	.stivale2hdr : {
-		KEEP(*(.stivale2hdr));
+	.limine_reqs : {
+		KEEP(*(.limine_reqs));
 	} :rodata
 
 	.driver_init : {

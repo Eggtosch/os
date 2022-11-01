@@ -1,81 +1,83 @@
 #include <boot/boot_info.h>
-#include <boot/stivale2.h>
+#include <boot/limine.h>
 
 #include <string.h>
 #include <common.h>
 
-
-static u8 os_stack[PAGE_SIZE * 4];
-
-
-static struct stivale2_tag unmap_null_tag = {
-	.identifier = STIVALE2_HEADER_TAG_UNMAP_NULL_ID,
-	.next = 0
+static struct limine_kernel_address_request kerneladdr_req = {
+	.id = LIMINE_KERNEL_ADDRESS_REQUEST,
+	.revision = 0,
+	.response = NULL
 };
 
-static struct stivale2_header_tag_terminal boot_terminal_hdr_tag = {
-	.tag = {
-		.identifier = STIVALE2_HEADER_TAG_TERMINAL_ID,
-		.next = (u64) &unmap_null_tag
-	},
-	.flags = 0
+static struct limine_memmap_request memmap_req = {
+	.id = LIMINE_MEMMAP_REQUEST,
+	.revision = 0,
+	.response = NULL
 };
 
-static struct stivale2_header_tag_framebuffer boot_framebuffer_hdr_tag = {
-	.tag = {
-		.identifier = STIVALE2_HEADER_TAG_FRAMEBUFFER_ID,
-		.next = (u64) &boot_terminal_hdr_tag
-	},
-	.framebuffer_width  = 0,
-	.framebuffer_height = 0,
-	.framebuffer_bpp    = 0
+static struct limine_rsdp_request rsdp_req = {
+	.id = LIMINE_RSDP_REQUEST,
+	.revision = 0,
+	.response = NULL
 };
 
-__attribute__((section(".stivale2hdr"), used))
-static struct stivale2_header boot_stivale_hdr = {
-	.entry_point = 0,
-	.stack = (u64) os_stack + sizeof(os_stack),
-	.flags = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4),
-	.tags = (u64) &boot_framebuffer_hdr_tag
+static struct limine_terminal_request terminal_req = {
+	.id = LIMINE_TERMINAL_REQUEST,
+	.revision = 0,
+	.response = NULL,
+	.callback = NULL
+};
+
+static struct limine_framebuffer_request framebuffer_req = {
+	.id = LIMINE_FRAMEBUFFER_REQUEST,
+	.revision = 0,
+	.response = NULL,
+};
+
+static struct limine_module_request module_req = {
+	.id = LIMINE_MODULE_REQUEST,
+	.revision = 0,
+	.response = NULL
+};
+
+__attribute__((section(".limine_reqs"), used))
+static void *request[] = {
+	&kerneladdr_req,
+	&memmap_req,
+	&rsdp_req,
+	&terminal_req,
+	&framebuffer_req,
+	&module_req,
+	NULL
 };
 
 
-static void *get_stivale_struct(struct stivale2_struct *stivale2_info, u64 id) {
-	struct stivale2_tag *current_tag = (void*) stivale2_info->tags;
-	for (;;) {
-		if (current_tag == NULL) {
-			return NULL;
-		}
-		if (current_tag->identifier == id) {
-			return current_tag;
-		}
-		current_tag = (void*) current_tag->next;
-	}
+static void write(const char *string, u64 length) {
+	struct limine_terminal *term = terminal_req.response->terminals[0];
+	terminal_req.response->write(term, string, length);
 }
-
-
-static void (*write_err_ptr)(const char *string, u64 length) = NULL;
 
 #define ERROR_HEADER  "Error: assert failed in '"
 #define ERROR_HEADER2 "': ("
 #define ERROR_TAIL    ")\n"
 #define assert(cond, msg) _assert(cond, #cond, __func__, msg)
 static void _assert(bool cond, const char *cond_str, const char *func_str, const char *msg) {
-	if (cond || write_err_ptr == NULL) {
+	if (cond) {
 		return;
 	}
 
-	write_err_ptr(ERROR_HEADER, sizeof(ERROR_HEADER));
-	write_err_ptr(func_str, strlen(func_str));
-	write_err_ptr(ERROR_HEADER2, sizeof(ERROR_HEADER2));
-	write_err_ptr(cond_str, strlen(cond_str));
-	write_err_ptr(ERROR_TAIL, sizeof(ERROR_TAIL));
+	write(ERROR_HEADER, sizeof(ERROR_HEADER));
+	write(func_str, strlen(func_str));
+	write(ERROR_HEADER2, sizeof(ERROR_HEADER2));
+	write(cond_str, strlen(cond_str));
+	write(ERROR_TAIL, sizeof(ERROR_TAIL));
 
 	if (msg == NULL) {
 		return;
 	}
 
-	write_err_ptr(msg, strlen(msg));
+	write(msg, strlen(msg));
 
 	for (;;) {
 		asm("hlt");
@@ -91,59 +93,56 @@ struct boot_info *boot_info_get(void) {
 
 extern void kmain(struct boot_info *boot_info);
 
-void _start(struct stivale2_struct *stivale2_info) {
-	struct stivale2_struct_tag_terminal *term_info;
-	term_info = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_TERMINAL_ID);
-	if (term_info == NULL) {
+void _start(void) {
+	void *stack_addr;
+	asm volatile("mov %%rsp, %0" : "=r"(stack_addr));
+
+	if (terminal_req.response == NULL) {
 		goto halt;
 	}
-	write_err_ptr = (void (*)(const char*, u64)) term_info->term_write;
+	if (terminal_req.response->terminal_count == 0) {
+		goto halt;
+	}
 
-	struct stivale2_struct_tag_framebuffer *fb_info;
-	fb_info = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID);
-	assert(fb_info != NULL, "No framebuffer available!\n");
-	assert(fb_info->framebuffer_bpp  == 32, "Kernel does only support 32 bpp framebuffer!\n");
-	assert(fb_info->red_mask_size    ==  8 &&
-		   fb_info->green_mask_size  ==  8 &&
-		   fb_info->blue_mask_size   ==  8, "Kernel does only support 8 bit color masks!\n");
-	assert(fb_info->red_mask_shift   == 16 &&
-		   fb_info->green_mask_shift ==  8 &&
-		   fb_info->blue_mask_shift  ==  0, "Kernel does only support RGB color format!\n");
+	struct limine_framebuffer_response *fb_info = framebuffer_req.response;
+	assert(fb_info != NULL && fb_info->framebuffer_count > 0, "No framebuffer available!\n");
+	struct limine_framebuffer *fb = fb_info->framebuffers[0];
+	assert(fb->bpp  == 32, "Kernel does only support 32 bpp framebuffer!\n");
+	assert(fb->red_mask_size    ==  8 &&
+		   fb->green_mask_size  ==  8 &&
+		   fb->blue_mask_size   ==  8, "Kernel does only support 8 bit color masks!\n");
+	assert(fb->red_mask_shift   == 16 &&
+		   fb->green_mask_shift ==  8 &&
+		   fb->blue_mask_shift  ==  0, "Kernel does only support RGB color format!\n");
 
-	struct stivale2_struct_tag_memmap *mem_info;
-	mem_info = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_MEMMAP_ID);
-	assert(mem_info != NULL, "No memory map available!\n");
+	struct limine_memmap_response *memmap = memmap_req.response;
+	assert(memmap != NULL, "No memory map available!\n");
 
-	struct stivale2_struct_tag_kernel_base_address *base_addr_info;
-	base_addr_info = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_KERNEL_BASE_ADDRESS_ID);
+	struct limine_kernel_address_response *base_addr_info = kerneladdr_req.response;
 	assert(base_addr_info != NULL, "No base address info available!\n");
 
-	struct stivale2_struct_tag_modules *modules;
-	modules = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_MODULES_ID);
-	assert(modules != NULL, "No kernel module info available!\n");
+	struct limine_module_response *module_info = module_req.response;
+	assert(module_info != NULL, "No kernel module info available!\n");
 
-	struct stivale2_struct_tag_rsdp *rsdp_tag;
-	rsdp_tag = get_stivale_struct(stivale2_info, STIVALE2_STRUCT_TAG_RSDP_ID);
-	assert(rsdp_tag != NULL, "No rsdp table pointer found!\n");
+	struct limine_rsdp_response *rsdp_info = rsdp_req.response;
+	assert(rsdp_info != NULL, "No rsdp table pointer found!\n");
 
-	boot_info.fb_print = write_err_ptr;
+	boot_info.fb_print = write;
+	boot_info.stack_addr = stack_addr;
+	boot_info.rsdp = rsdp_info->address;
 
-	boot_info.stack_addr = (void*) os_stack + sizeof(os_stack);
+	boot_info.fb_info.fb_addr	= fb->address;
+	boot_info.fb_info.fb_width	= fb->width;
+	boot_info.fb_info.fb_height	= fb->height;
+	boot_info.fb_info.fb_pitch	= fb->pitch;
 
-	boot_info.rsdp = (void*) rsdp_tag->rsdp;
+	boot_info.mem_info.mem_entries = memmap->entry_count;
+	boot_info.mem_info.mem_map	   = (struct mem_entry**) memmap->entries;
+	boot_info.mem_info.mem_pmm_base = base_addr_info->physical_base;
+	boot_info.mem_info.mem_vmm_base = base_addr_info->virtual_base;
 
-	boot_info.fb_info.fb_addr	= (void*) fb_info->framebuffer_addr;
-	boot_info.fb_info.fb_width	= fb_info->framebuffer_width;
-	boot_info.fb_info.fb_height	= fb_info->framebuffer_height;
-	boot_info.fb_info.fb_pitch	= fb_info->framebuffer_pitch;
-
-	boot_info.mem_info.mem_entries = mem_info->entries;
-	boot_info.mem_info.mem_map	   = (struct mem_entry*) mem_info->memmap;
-	boot_info.mem_info.mem_pmm_base = (u64) base_addr_info->physical_base_address;
-	boot_info.mem_info.mem_vmm_base = (u64) base_addr_info->virtual_base_address;
-
-	boot_info.module_info.module_count = modules->module_count;
-	boot_info.module_info.modules      = (struct kernel_module*) modules->modules;
+	boot_info.module_info.module_count = module_info->module_count;
+	boot_info.module_info.modules      = (struct kernel_module*) module_info->modules;
 
 	kmain(&boot_info);
 
