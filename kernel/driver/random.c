@@ -1,8 +1,7 @@
 #include <driver/driver.h>
 #include <cpu/cpu.h>
 
-static u64 random_read(struct io_device *dev, u8 *buf, u64 buflen) {
-	(void) dev;
+static u64 random_read(__unused struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	u64 val = 0;
 	u64 checksum = 0;
 	u64 index = 0;
@@ -29,8 +28,7 @@ static struct driver_file driver_files[] = {
 	{NULL, {NULL, NULL, NULL}},
 };
 
-static void random_init(struct boot_info *boot_info) {
-	(void) boot_info;
+static void random_init(__unused struct boot_info *boot_info) {
 	if (cpu_has_flag(CPUID_RDRND)) {
 		driver_register("random", driver_files);
 	}

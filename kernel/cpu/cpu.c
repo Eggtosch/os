@@ -13,9 +13,7 @@ struct cpuid_info {
 
 static struct cpuid_info cpuid_info;
 
-void cpu_init(struct boot_info *boot_info) {
-	(void) boot_info;
-
+void cpu_init(__unused struct boot_info *boot_info) {
 	char man_id_1[4], man_id_2[4], man_id_3[4];
 	asm volatile("cpuid" : "=a"(cpuid_info.max_basic_leaf), "=b"(man_id_1), "=d"(man_id_2), "=c"(man_id_3) : "a"(0));
 	asm volatile("cpuid" : "=a"(cpuid_info.max_ext_leaf) : "a"(0x80000000) : "ebx", "ecx", "edx");

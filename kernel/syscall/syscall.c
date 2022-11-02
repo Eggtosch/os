@@ -22,22 +22,24 @@ static u64 sys_read(struct cpu_state *cpu_state) {
 	int fd       = (int)   cpu_state->rbx;
 	void *buffer = (void*) cpu_state->rcx;
 	u64 count    =         cpu_state->rdx;
+	u64 offset   =         cpu_state->rdi;
 	struct io_device *stream = vfs_get(fd);
 	if (stream == NULL) {
 		return -1;
 	}
-	return stream->read(stream, buffer, count);
+	return stream->read(stream, buffer, count, offset);
 }
 
 static u64 sys_write(struct cpu_state *cpu_state) {
 	int fd       = (int)   cpu_state->rbx;
 	void *buffer = (void*) cpu_state->rcx;
 	u64 count    =         cpu_state->rdx;
+	u64 offset   =         cpu_state->rdi;
 	struct io_device *stream = vfs_get(fd);
 	if (stream == NULL) {
 		return -1;
 	}
-	return stream->write(stream, buffer, count);
+	return stream->write(stream, buffer, count, offset);
 }
 
 static u64 sys_mmap(struct cpu_state *cpu_state) {

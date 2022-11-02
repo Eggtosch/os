@@ -22,8 +22,7 @@ static char _scancodes[] = {
 };
 
 
-static u64 keyboard_read(struct io_device *stream, u8 *buf, u64 size) {
-	(void) stream;
+static u64 keyboard_read(__unused struct io_device *stream, u8 *buf, u64 size, __unused u64 offset) {
 	u64 i = 0;
 	for (; i < size && i < _scancode_count; i++) {
 		buf[i] = _scancode_buffer[i];
@@ -40,8 +39,7 @@ static u64 keyboard_read(struct io_device *stream, u8 *buf, u64 size) {
 	return i;
 }
 
-static void isr_keyboard(struct cpu_state *cpu_state) {
-	(void) cpu_state;
+static void isr_keyboard(__unused struct cpu_state *cpu_state) {
 	if (_scancode_count >= MAX_SCANCODES) {
 		return;
 	}
@@ -54,8 +52,7 @@ static struct driver_file driver_files[] = {
 	{NULL, {NULL, NULL, NULL}}
 };
 
-static void keyboard_init(struct boot_info *boot_info) {
-	(void) boot_info;
+static void keyboard_init(__unused struct boot_info *boot_info) {
 	interrupt_register(INT_KEYBOARD, isr_keyboard, INT_KERNEL);
 
 	while (io_inb(KEYBOARD_CMD) & 1) {

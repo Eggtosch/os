@@ -25,10 +25,13 @@ static const char *cpu_flag_names[] = {
 static const char *cpuinfo_string;
 static u64 cpuinfo_string_len;
 
-static u64 cpuinfo_read(struct io_device *dev, u8 *buf, u64 buflen) {
-	(void) dev;
-	u64 max = buflen > cpuinfo_string_len ? buflen : cpuinfo_string_len;
-	memcpy(buf, cpuinfo_string, max);
+static u64 cpuinfo_read(__unused struct io_device *dev, u8 *buf, u64 buflen, u64 offset) {
+	if (offset >= cpuinfo_string_len) {
+		return 0;
+	}
+	u64 available = cpuinfo_string_len - offset;
+	u64 max = buflen > available ? available : buflen;
+	memcpy(buf, cpuinfo_string + offset, max);
 	return max;
 }
 
@@ -45,9 +48,7 @@ static void resize(char **s, u64 *n_pages) {
 	(*n_pages)++;
 }
 
-static void cpuinfo_init(struct boot_info *boot_info) {
-	(void) boot_info;
-
+static void cpuinfo_init(__unused struct boot_info *boot_info) {
 	u64 pages = 1;
 	char *s = (void*) pmm_alloc(pages);
 	u64 index = 0;

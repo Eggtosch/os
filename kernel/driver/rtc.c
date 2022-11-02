@@ -89,8 +89,7 @@ static struct time get_rtc_struct(void) {
 	return (struct time){seconds, minutes, hours, day, month, year, century};
 }
 
-static void rtc_irq(struct cpu_state *cpu_state) {
-	(void) cpu_state;
+static void rtc_irq(__unused struct cpu_state *cpu_state) {
 	u8 status_c = read_register(0x0c);
 	if (!(status_c & 0x10)) {
 		return;
@@ -98,14 +97,12 @@ static void rtc_irq(struct cpu_state *cpu_state) {
 	rtc_global_time = get_rtc_struct();
 }
 
-static u64 rtc_read_time(struct io_device *dev, u8 *buf, u64 buflen) {
-	(void) dev;
+static u64 rtc_read_time(__unused struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	u64 timestamp = time();
 	return snprintf((char*) buf, buflen, "%d", timestamp);
 }
 
-static u64 rtc_read_date(struct io_device *dev, u8 *buf, u64 buflen) {
-	(void) dev;
+static u64 rtc_read_date(__unused struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	struct time time = rtc_global_time;
 	return snprintf((char*) buf, buflen, "%0.2d.%0.2d.%d %0.2d:%0.2d:%0.2d",
 		time.day, time.month, time.century * 100 + time.year, time.hours, time.minutes, time.seconds);
@@ -117,9 +114,7 @@ static struct driver_file driver_files[] = {
 	{NULL, {NULL, NULL, NULL}},
 };
 
-static void rtc_init(struct boot_info *boot_info) {
-	(void) boot_info;
-
+static void rtc_init(__unused struct boot_info *boot_info) {
 	rtc_global_time = get_rtc_struct();
 
 	interrupt_register(INT_RTC, rtc_irq, INT_KERNEL);

@@ -16,7 +16,7 @@ static u64 out(struct io_device *stream, char c) {
 	static u64 _written = 0;
 
 	if (c == '\0' || _index >= BUFLEN) {
-		stream->write(stream, (u8*) _buf, _index);
+		stream->write(stream, (u8*) _buf, _index, 0);
 		_index = 0;
 		u64 ret = 0;
 		if (c == '\0') {
@@ -278,7 +278,7 @@ struct string_io {
 	u64 index;
 };
 
-static u64 _string_write(struct io_device *stream, u8 *buf, u64 size) {
+static u64 _string_write(struct io_device *stream, u8 *buf, u64 size, __unused u64 offset) {
 	struct string_io *_io = (struct string_io*) stream;
 	u64 maxlen = _io->maxlen;
 	char *sbuf = _io->buf;

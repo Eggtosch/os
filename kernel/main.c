@@ -45,7 +45,7 @@ void kmain(struct boot_info *boot_info) {
 	printf("free bytes: %d\n", pmm_get_free_bytes());
 
 	char buf[500];
-	u64 len = vfs_read("/dev/cpuinfo", (u8*) buf, 500);
+	u64 len = vfs_read("/dev/cpuinfo", (u8*) buf, 500, 0);
 	printf("%s\n", buf);
 	boot_info->fb_print(buf, len);
 	boot_info->fb_print("\n", 1);
@@ -67,7 +67,7 @@ void kmain(struct boot_info *boot_info) {
 		time_printed = t;
 
 		char datebuf[100];
-		u64 len = vfs_read("/dev/date", (u8*) datebuf, 100);
+		u64 len = vfs_read("/dev/date", (u8*) datebuf, 100, 0);
 
 		boot_info->fb_print(datebuf, len);
 		boot_info->fb_print("\r", 1);

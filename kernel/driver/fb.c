@@ -71,7 +71,7 @@ static bool fb_in_range(struct fb_info *fb_info, u16 x, u16 y, u16 width, u16 he
 		   (y + height <= fb_info->fb_height);
 }
 
-static u64 fb_raw_read(struct io_device *dev, u8 *buf, u64 buflen) {
+static u64 fb_raw_read(struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	struct fb_info *fb_info = dev->userdata;
 	u16 x = (buf[0] << 8) + buf[1];
 	u16 y = (buf[2] << 8) + buf[3];
@@ -95,7 +95,7 @@ static u64 fb_raw_read(struct io_device *dev, u8 *buf, u64 buflen) {
 	return (u64) dst - (u64) buf;
 }
 
-static u64 fb_raw_write(struct io_device *dev, u8 *buf, u64 buflen) {
+static u64 fb_raw_write(struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	struct fb_info *fb_info = dev->userdata;
 	u16 x = (buf[0] << 8) + buf[1];
 	u16 y = (buf[2] << 8) + buf[3];
@@ -119,7 +119,7 @@ static u64 fb_raw_write(struct io_device *dev, u8 *buf, u64 buflen) {
 	return (u64) src - (u64) buf;
 }
 
-static u64 fb_write(struct io_device *dev, u8 *buf, u64 buflen) {
+static u64 fb_write(struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	struct fb_info *fb_info = dev->userdata;
 	u16 x = (buf[0] << 8) + buf[1];
 	u16 y = (buf[2] << 8) + buf[3];
@@ -147,12 +147,12 @@ static u64 fb_write(struct io_device *dev, u8 *buf, u64 buflen) {
 	return (u64) src - (u64) buf;
 }
 
-static u64 fb_width(struct io_device *dev, u8 *buf, u64 buflen) {
+static u64 fb_width(struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	struct fb_info *fb_info = dev->userdata;
 	return snprintf((char*) buf, buflen, "%#x", fb_info->fb_width);
 }
 
-static u64 fb_height(struct io_device *dev, u8 *buf, u64 buflen) {
+static u64 fb_height(struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	struct fb_info *fb_info = dev->userdata;
 	return snprintf((char*) buf, buflen, "%#x", fb_info->fb_height);
 }
@@ -170,10 +170,8 @@ static struct driver_file driver_files[] = {
 static void fb_init(struct boot_info *boot_info) {
 	_fb_info = boot_info->fb_info;
 	_fb_info.fb_pitch /= 4;
-	// allocate double buffer
 
 	enable_mtrr(_fb_info.fb_addr, _fb_info.fb_pitch, _fb_info.fb_height);
-
 	driver_register("fb", driver_files);
 }
 

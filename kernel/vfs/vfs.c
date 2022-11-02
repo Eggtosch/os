@@ -68,22 +68,22 @@ int vfs_open(const char *pathname) {
 	return -1;
 }
 
-u64 vfs_read(const char *pathname, u8 *buf, u64 buflen) {
+u64 vfs_read(const char *pathname, u8 *buf, u64 buflen, u64 offset) {
 	struct io_device *dev = vfs_get(vfs_open(pathname));
 	if (dev == NULL) {
 		return 0;
 	}
 
-	return dev->read(dev, buf, buflen);
+	return dev->read(dev, buf, buflen, offset);
 }
 
-u64 vfs_write(const char *pathname, u8 *buf, u64 buflen) {
+u64 vfs_write(const char *pathname, u8 *buf, u64 buflen, u64 offset) {
 	struct io_device *dev = vfs_get(vfs_open(pathname));
 	if (dev == NULL) {
 		return 0;
 	}
 
-	return dev->write(dev, buf, buflen);
+	return dev->write(dev, buf, buflen, offset);
 }
 
 struct io_device *vfs_get(int fd) {

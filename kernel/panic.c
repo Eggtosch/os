@@ -2,7 +2,7 @@
 #include <io/stdio.h>
 #include <boot/boot_info.h>
 
-static u64 panic_write_fb(struct io_device *dev, u8 *buf, u64 buflen) {
+static u64 panic_write_fb(struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	struct boot_info *boot_info = dev->userdata;
 	boot_info->fb_print((char*) buf, buflen);
 	return buflen;

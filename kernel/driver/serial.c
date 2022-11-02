@@ -12,8 +12,7 @@ static bool serial_send_ready(void) {
 	return io_inb(COM1 + 5) & 0x20;
 }
 
-static u64 serial_recv(struct io_device *stream, u8 *buf, u64 bufsize) {
-	(void) stream;
+static u64 serial_recv(__unused struct io_device *stream, u8 *buf, u64 bufsize, __unused u64 offset) {
 	u64 i;
 	for (i = 0; i < bufsize; i++) {
 		while (!serial_recv_ready());
@@ -25,8 +24,7 @@ static u64 serial_recv(struct io_device *stream, u8 *buf, u64 bufsize) {
 	return i;
 }
 
-static u64 serial_send(struct io_device *stream, u8 *buf, u64 count) {
-	(void) stream;
+static u64 serial_send(__unused struct io_device *stream, u8 *buf, u64 count, __unused u64 offset) {
 	u64 i;
 	for (i = 0; i < count; i++) {
 		while (!serial_send_ready());
@@ -44,8 +42,7 @@ struct io_device *serial_io_device_get(void) {
 	return &driver_files[0].stream;
 }
 
-static void serial_init(struct boot_info *boot_info) {
-	(void) boot_info;
+static void serial_init(__unused struct boot_info *boot_info) {
 	io_outb(COM1 + 1, 0x00);
 	io_outb(COM1 + 3, 0x80);
 	io_outb(COM1 + 0, 0x03);
