@@ -8,15 +8,18 @@
 
 
 static u64 *_kernel_page_dir;
+static u64 _identity_map_index;
 static u64 _higher_half_map_index;
 static u64 _kernel_map_index;
 
 static void save_kernel_pagedir_entries(void) {
 	_higher_half_map_index = 512;
 	_kernel_map_index      = 512;
+	_identity_map_index    = 512;
 	u64 i = 0;
 	for (; i < 512; i++) {
 		if (_kernel_page_dir[i] & 1) {
+			_identity_map_index = i;
 			i++;
 			break;
 		}
@@ -35,8 +38,8 @@ static void save_kernel_pagedir_entries(void) {
 			break;
 		}
 	}
-	if (_higher_half_map_index == 512 || _kernel_map_index == 512) {
-		panic("could not determine higher_half identity map or kernel map");
+	if (_higher_half_map_index == 512 || _kernel_map_index == 512 || _identity_map_index == 512) {
+		panic("could not determine higher_half identity map or kernel map or _identity_map_index");
 	}
 }
 
@@ -84,7 +87,8 @@ static void destroy_pd3(u64 *pd3) {
 static void destroy_pd4(u64 *pd4) {
 	for (u64 i4 = 0; i4 < 512; i4++) {
 		if (i4 == _kernel_map_index ||
-			i4 == _higher_half_map_index) {
+			i4 == _higher_half_map_index ||
+			i4 == _identity_map_index) {
 			continue;
 		}
 		if (pd4[i4] & 1) {
@@ -153,6 +157,7 @@ void vmm_set_pagedir(u64 *pd) {
 
 u64 *vmm_pagedir_create(void) {
 	u64 *pagedir = (u64*) pmm_alloc(1);
+	pagedir[_identity_map_index]    = _kernel_page_dir[_identity_map_index];
 	pagedir[_higher_half_map_index] = _kernel_page_dir[_higher_half_map_index];
 	pagedir[_kernel_map_index]      = _kernel_page_dir[_kernel_map_index];
 	return pagedir;
@@ -191,6 +196,21 @@ void vmm_map_data(u64 *pagedir, u64 virt_addr, void *data, u64 data_size) {
 		data_size -= bytes_to_copy;
 		data += bytes_to_copy;
 	}
+}
+
+u64 vmm_vaddr_to_phys(u64 *pagedir, u64 virt_addr) {
+	virt_addr = virt_addr & ~((u64) 0xfff);
+	u64 index4 = (virt_addr & ((u64)0x1ff << 39)) >> 39;
+	u64 index3 = (virt_addr & ((u64)0x1ff << 30)) >> 30;
+	u64 index2 = (virt_addr & ((u64)0x1ff << 21)) >> 21;
+	u64 index1 = (virt_addr & ((u64)0x1ff << 12)) >> 12;
+
+	u64 *pagedir4 = pagedir;
+	u64 *pagedir3 = get_pagedir_level(pagedir4, index4);
+	u64 *pagedir2 = get_pagedir_level(pagedir3, index3);
+	u64 *pagedir1 = get_pagedir_level(pagedir2, index2);
+
+	return pagedir1[index1] & ~((u64) 0b111);
 }
 
 void vmm_unmap(u64 *pagedir, u64 virt_addr, u64 size) {

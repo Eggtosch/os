@@ -16,6 +16,8 @@
 #include <driver/driver.h>
 #include <driver/util.h>
 
+#include <process/process.h>
+
 extern driver_init_t __start_driver_init[];
 extern driver_init_t __stop_driver_init[];
 
@@ -42,35 +44,11 @@ void kmain(struct boot_info *boot_info) {
 
 	vfs_print_entries();
 
-	printf("free bytes: %d\n", pmm_get_free_bytes());
-
-	char buf[500];
-	u64 len = vfs_read("/dev/cpuinfo", (u8*) buf, 500, 0);
-	printf("%s\n", buf);
-	boot_info->fb_print(buf, len);
-	boot_info->fb_print("\n", 1);
-
-	i64 t = time();
-	i64 time_printed = 0;
+	process_init(boot_info);
+	process_create("/modules/osl.elf");
 
 	while(1) {
 		asm("hlt");
-
-		if (time() != t) {
-			t = time();
-			continue;
-		}
-
-		if (t == 0 || t == time_printed) {
-			continue;
-		}
-		time_printed = t;
-
-		char datebuf[100];
-		u64 len = vfs_read("/dev/date", (u8*) datebuf, 100, 0);
-
-		boot_info->fb_print(datebuf, len);
-		boot_info->fb_print("\r", 1);
 	}
 }
 

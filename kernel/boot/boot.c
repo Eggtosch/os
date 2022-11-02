@@ -142,7 +142,7 @@ void _start(void) {
 	boot_info.mem_info.mem_vmm_base = base_addr_info->virtual_base;
 
 	boot_info.module_info.module_count = module_info->module_count;
-	boot_info.module_info.modules      = (struct kernel_module*) module_info->modules;
+	boot_info.module_info.modules      = (struct kernel_module**) module_info->modules;
 
 	kmain(&boot_info);
 

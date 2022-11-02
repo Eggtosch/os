@@ -1,6 +1,8 @@
 #include <syscall.h>
 #include <common.h>
 
+char f[] = "Hello world, this is a hello world string :()!\n";
+__attribute__((used)) static int g[100];
 
 void _start(const char *program, u64 progsize) {
 	(void) program;
@@ -11,9 +13,12 @@ void _start(const char *program, u64 progsize) {
 	}
 	// initialize x87, sse, sse2: https://wiki.osdev.org/FPU
 	//float f = 4;
-	char f[] = "Hello world!\n";
+	//char f[] = "Hello world!\n";
 	sys_write(fd, (void*) &f, sizeof(f));
-	sys_exit();
+	while (1) {
+		sys_exit();
+	}
 }
 
-// objdump -b binary -m i386:x86-64 --adjust-vma=0x8000000000 -D bin/osl.bin
+// objdump -b binary -m i386:x86-64 --adjust-vma=0x80000000 -D bin/osl.bin
+

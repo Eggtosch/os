@@ -6,7 +6,7 @@ BOOT_FILES     := bin/kernel.elf					\
 					limine/limine.sys				\
 					limine/limine-cd.bin			\
 					limine/limine-cd-efi.bin
-KERNEL_MODULES := bin/osl.bin programs/shell.osl
+KERNEL_MODULES := bin/osl.elf bin/osl.bin programs/shell.osl
 
 ISO       := bin/os.iso
 QEMU_UEFI := /usr/share/ovmf/OVMF.fd
@@ -61,6 +61,10 @@ fonts:
 .PHONY: run
 run: build
 	qemu-system-x86_64 -enable-kvm -serial stdio -s -drive format=raw,file=$(ISO)
+
+.PHONY: run-dbg
+run-dbg: build
+	qemu-system-x86_64 -serial stdio -s -S -drive format=raw,file=$(ISO)
 
 .PHONY: run-uefi
 run-uefi: build

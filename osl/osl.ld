@@ -14,19 +14,15 @@ PHDRS
 
 SECTIONS
 {
-	. = 0x80000000;
+	. = 0x500000000000;
 
 	.text : {
 		*(.text .text.*)
 	} :text
 
-	. += CONSTANT(MAXPAGESIZE);
-
 	.rodata : {
 		*(.rodata .rodata.*)
 	} :rodata
-
-	. += CONSTANT(MAXPAGESIZE);
 
 	.data : {
 		*(.data .data.*)
@@ -37,3 +33,4 @@ SECTIONS
 		*(.bss .bss.*)
 	} :data
 }
+

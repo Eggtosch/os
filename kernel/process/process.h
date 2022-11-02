@@ -13,12 +13,8 @@ struct process {
 	u64 *pagedir;
 };
 
-
-void process_init(struct module_info *module_info);
+void process_init(struct boot_info *boot_info);
 u64  process_create(const char *name);
 struct process *process_get(u64 pid);
 u64  process_current(void);
-// process_create instead of process_start
-// make scheduler that uses pit to schedule processes
-// save all running processes
 

@@ -70,10 +70,6 @@ u64 interrupt_handler(u64 rsp) {
 			printf("gs: %#x\n", gs);
 		}
 		panic("irq %d -> %s(%#x)\nInstruction: %p\n", isr_num, exception_names[isr_num], error_code, cpu_state->rip);
-		while (1) {
-			asm volatile("cli");
-			asm volatile("hlt");
-		}
 	}
 
 	if (isr_functions[isr_num] != NULL) {

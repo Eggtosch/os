@@ -1,15 +1,15 @@
 #include <process/process.h>
+#include <process/elf.h>
 
+#include <boot/boot_info.h>
 #include <memory/vmm.h>
 
 #include <string.h>
 #include <panic.h>
-#include <common.h>
+#include <io/stdio.h>
 
 
 static struct module_info *_module_info;
-static u8 *_osl_addr = NULL;
-static u64 _osl_size = 0;
 
 #define MAX_PROCESSES (1000)
 static struct process _processes[1000];
@@ -18,19 +18,16 @@ static u64 _current_process = 0;
 
 extern void asm_jump_usermode(u64 addr, u64 stack, u64 prog, u64 size);
 
-static void search_module(const char *module, u8 **addr, u64 *size) {
+static struct kernel_module *search_module(const char *module) {
 	u32 nmodules = _module_info->module_count;
 
 	for (u32 i = 0; i < nmodules; i++) {
-		struct kernel_module *m = &_module_info->modules[i];
+		struct kernel_module *m = _module_info->modules[i];
 		if (strcmp(m->path, module) == 0) {
-			*addr = m->addr;
-			*size = m->size;
-			return;
+			return m;
 		}
 	}
-	*addr = NULL;
-	*size = 0;
+	return NULL;
 }
 
 static u64 first_free_process(void) {
@@ -42,25 +39,17 @@ static u64 first_free_process(void) {
 	return 0;
 }
 
-void process_init(struct module_info *module_info) {
-	_module_info = module_info;
+void process_init(struct boot_info *boot_info) {
+	_module_info = &boot_info->module_info;
 
 	for (u64 i = 0; i < MAX_PROCESSES; i++) {
 		_processes[i] = (struct process){0};
 	}
-
-	search_module("osl", &_osl_addr, &_osl_size);
-
-	if (_osl_addr == NULL) {
-		panic("could not find osl binary");
-	}
 }
 
 u64 process_create(const char *name) {
-	char *prog;
-	u64 prog_size;
-	search_module(name, (u8**) &prog, &prog_size);
-	if (prog == NULL) {
+	struct kernel_module *km = search_module(name);
+	if (km == NULL) {
 		return 0;
 	}
 
@@ -69,16 +58,26 @@ u64 process_create(const char *name) {
 		return 0;
 	}
 
-	u64 *pagedir = vmm_pagedir_create();
-	vmm_map_data(pagedir, VMM_USER_CODE, _osl_addr, _osl_size);
-	u64 prog_addr = ALIGNUP_PAGE(VMM_USER_CODE + _osl_size);
-	vmm_map_data(pagedir, prog_addr, prog, prog_size);
+	int err = elf_validate(km->addr);
+	if (err != ELF_OK) {
+		panic("Could not validate %s: %s\n", name, elf_error_str(err));
+	}
+
+	u64 *pagedir;
+	u64 entry;
+	err = elf_load(km->addr, &pagedir, &entry);
+	if (err != ELF_OK) {
+		panic("Could not load %s: %s\n", name, elf_error_str(err));
+	}
+
 	vmm_map(pagedir, VMM_USER_STACK_END - VMM_USER_STACK_LEN, VMM_USER_STACK_LEN);
 	vmm_set_pagedir(pagedir);
+
 	_processes[pid].status  = PROC_RUNNING;
 	_processes[pid].pagedir = pagedir;
 	_current_process = pid;
-	asm_jump_usermode(VMM_USER_CODE, VMM_USER_STACK_END, prog_addr, prog_size);
+
+	asm_jump_usermode(entry, VMM_USER_STACK_END, (u64) NULL, 0);
 	return pid;
 }
 

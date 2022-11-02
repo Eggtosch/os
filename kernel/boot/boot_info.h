@@ -72,7 +72,7 @@ struct boot_info {
 			struct uuid gpt_disk_uuid;
 			struct uuid gpt_part_uuid;
 			struct uuid part_uuid;
-		} *modules;
+		} **modules;
 
 	} module_info;
 
