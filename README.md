@@ -8,5 +8,5 @@ Follow this tutorial to build the [cross compiler](https://wiki.osdev.org/GCC_Cr
 and [libgcc without red zone](https://wiki.osdev.org/Libgcc_without_red_zone).
 Use `./cross_compiler` as the PREFIX, target is `x86_64-elf`.
 
-Dependencies: `apt install nasm xorriso`.
+Dependencies: `apt install nasm xorriso qemu-system-x86`.
 
