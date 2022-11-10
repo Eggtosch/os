@@ -1,5 +1,6 @@
 #include <memory/pmm.h>
 
+#include <cpu/cpu.h>
 #include <io/stdio.h>
 #include <string.h>
 #include <panic.h>
@@ -176,12 +177,28 @@ void pmm_free(u64 ptr, u64 page_count) {
 	}
 }
 
+static u64 popcnt_fallback(u64 x) {
+	u64 cnt = 0;
+	while (x) {
+		cnt += x & 1;
+		x >>= 1;
+	}
+	return cnt;
+}
+
 u64 pmm_get_free_bytes(void) {
 	u64 bytes_free = 0;
-	for (u64 i = 0; i < _bitmap.bitmap_size / 8; i++) {
-		u64 used_pages = 0;
-		asm("popcnt %0, %1" : "=r"(used_pages) : "r"(_bitmap.mem_map[i]));
-		bytes_free += (64 - used_pages) * PAGE_SIZE;
+	if (cpu_has_flag(CPUID_POPCNT)) {
+		for (u64 i = 0; i < _bitmap.bitmap_size / 8; i++) {
+			u64 used_pages = 0;
+			asm("popcnt %0, %1" : "=r"(used_pages) : "r"(_bitmap.mem_map[i]));
+			bytes_free += (64 - used_pages) * PAGE_SIZE;
+		}
+	} else {
+		for (u64 i = 0; i < _bitmap.bitmap_size / 8; i++) {
+			u64 used_pages = popcnt_fallback(_bitmap.mem_map[i]);
+			bytes_free += (64 - used_pages) * PAGE_SIZE;
+		}
 	}
 	return bytes_free;
 }
