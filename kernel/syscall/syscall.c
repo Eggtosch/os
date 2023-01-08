@@ -54,9 +54,7 @@ static u64 sys_exit(struct cpu_state *cpu_state) {
 	struct process *p = process_get(process_current());
 	vmm_set_pagedir(NULL);
 	vmm_pagedir_destroy(p->pagedir);
-	while (1) {
-		asm volatile("hlt");
-	}
+	kloop();
 	return cpu_state->rax;
 }
 

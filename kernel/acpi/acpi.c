@@ -1,12 +1,13 @@
 #include <acpi/acpi.h>
 #include <acpi/acpi_defs.h>
+#include <acpi/hpet.h>
 #include <io/stdio.h>
 #include <io/io.h>
 #include <string.h>
 #include <panic.h>
 #include <driver/util.h>
 
-static struct fadt *acpi_fadt;
+static struct acpi_fadt *acpi_fadt;
 
 u16 acpi_get_century_register(void) {
 	return acpi_fadt->century;
@@ -14,7 +15,7 @@ u16 acpi_get_century_register(void) {
 
 bool acpi_reset(void) {
 	if (acpi_fadt->header.revision >= 2 && acpi_fadt->flags & (1 << 10)) {
-		struct generic_addr addr = acpi_fadt->reset_reg;
+		struct acpi_generic_addr addr = acpi_fadt->reset_reg;
 		if (addr.addr_space == ADDR_SPACE_SYSTEM_IO) {
 			io_outb(addr.addr, acpi_fadt->reset_value);
 		} else if (addr.addr_space == ADDR_SPACE_SYSTEM_MEMORY) {
@@ -32,7 +33,7 @@ bool acpi_reset(void) {
 	return false;
 }
 
-static bool rsdp_is_v2(struct rsdp *rsdp) {
+static bool rsdp_is_v2(struct acpi_rsdp *rsdp) {
 	return rsdp->revision != 0;
 }
 
@@ -44,21 +45,21 @@ static bool checksum_valid(u8 *bytes, u32 count) {
 	return (checksum & 0xff) == 0;
 }
 
-static bool rsdp_checksum_valid(struct rsdp *rsdp) {
-	u32 length = rsdp_is_v2(rsdp) ? sizeof(struct rsdp) : offsetof(struct rsdp, len);
+static bool rsdp_checksum_valid(struct acpi_rsdp *rsdp) {
+	u32 length = rsdp_is_v2(rsdp) ? sizeof(struct acpi_rsdp) : offsetof(struct acpi_rsdp, len);
 	return checksum_valid((u8*) rsdp, length);
 }
 
-static struct sdt_header *rsdt_find(struct rsdt *rsdt, const char *signature) {
+static struct acpi_sdt_header *rsdt_find(struct acpi_rsdt *rsdt, const char *signature) {
 	if (strlen(signature) != 4) {
 		return NULL;
 	}
 
-	struct sdt_header *header = NULL;
+	struct acpi_sdt_header *header = NULL;
 
 	int entries = (rsdt->header.len - sizeof(rsdt->header)) / 4;
 	for (int i = 0; i < entries; i++) {
-		struct sdt_header *h = (struct sdt_header*) (u64) rsdt->sdts[i];
+		struct acpi_sdt_header *h = (struct acpi_sdt_header*) (u64) rsdt->sdts[i];
 		if (memcmp((void*) h->signature, (void*) signature, 4) == 0) {
 			header = h;
 			break;
@@ -76,10 +77,19 @@ static struct sdt_header *rsdt_find(struct rsdt *rsdt, const char *signature) {
 	return header;
 }
 
-static void parse_fadt(struct rsdt *rsdt);
+__unused static void print_sdt_entries(struct acpi_rsdt *rsdt) {
+	int entries = (rsdt->header.len - sizeof(rsdt->header)) / 4;
+	for (int i = 0; i < entries; i++) {
+		struct acpi_sdt_header *h = (struct acpi_sdt_header*) (u64) rsdt->sdts[i];
+		printf("%.4s\n", h->signature);
+	}
+}
+
+static void parse_fadt(struct acpi_rsdt *rsdt);
+static void parse_hpet(struct acpi_rsdt *rsdt);
 
 void acpi_init(struct boot_info *boot_info) {
-	struct rsdp *rsdp = (struct rsdp*) boot_info->rsdp;
+	struct acpi_rsdp *rsdp = (struct acpi_rsdp*) boot_info->rsdp;
 
 	if (memcmp(rsdp->signature, "RSD PTR ", 8) != 0) {
 		panic("ACPI signature invalid\n");
@@ -88,15 +98,24 @@ void acpi_init(struct boot_info *boot_info) {
 		panic("ACPI checksum invalid\n");
 	}
 
-	struct rsdt *rsdt = (struct rsdt*) (u64) rsdp->rsdt_addr;
+	struct acpi_rsdt *rsdt = (struct acpi_rsdt*) (u64) rsdp->rsdt_addr;
 
 	parse_fadt(rsdt);
+	parse_hpet(rsdt);
 }
 
-static void parse_fadt(struct rsdt *rsdt) {
-	acpi_fadt = (struct fadt*) (u64) rsdt_find(rsdt, "FACP");
+static void parse_fadt(struct acpi_rsdt *rsdt) {
+	acpi_fadt = (struct acpi_fadt*) (u64) rsdt_find(rsdt, "FACP");
 	if (acpi_fadt == NULL) {
-		panic("ACPI fadt not found!\n");
+		panic("ACPI fadt table not found!\n");
 	}
+}
+
+static void parse_hpet(struct acpi_rsdt *rsdt) {
+	struct acpi_hpet *hpet = (struct acpi_hpet*) rsdt_find(rsdt, "HPET");
+	if (hpet == NULL) {
+		panic("ACPI hpet table not found!\n");
+	}
+	hpet_register(hpet->base_address.addr);
 }
 

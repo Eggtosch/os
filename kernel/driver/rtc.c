@@ -4,6 +4,7 @@
 #include <io/io.h>
 #include <io/stdio.h>
 #include <acpi/acpi.h>
+#include <acpi/hpet.h>
 
 #define SECONDS_IN_MINUTE   (60L)
 #define SECONDS_IN_HOUR     (60L * SECONDS_IN_MINUTE)
@@ -95,6 +96,7 @@ static void rtc_irq(__unused struct cpu_state *cpu_state) {
 		return;
 	}
 	rtc_global_time = get_rtc_struct();
+	hpet_next_timeout(HPET_TIMER_RTC);
 }
 
 static u64 rtc_read_time(__unused struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {

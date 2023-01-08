@@ -2,7 +2,7 @@
 
 #include <common.h>
 
-struct rsdp {
+struct acpi_rsdp {
 	char signature[8];
 	u8 checksum;
 	char oem_id[6];
@@ -15,7 +15,7 @@ struct rsdp {
 	u8 reserved[3];
 } __attribute__((packed));
 
-struct sdt_header {
+struct acpi_sdt_header {
 	char signature[4];
 	u32 len;
 	u8 revision;
@@ -27,12 +27,12 @@ struct sdt_header {
 	u32 creator_revision;
 } __attribute__((packed));
 
-struct rsdt {
-	struct sdt_header header;
+struct acpi_rsdt {
+	struct acpi_sdt_header header;
 	u32 sdts[];
 } __attribute__((packed));
 
-struct generic_addr {
+struct acpi_generic_addr {
 	u8 addr_space;
 	u8 bitwidth;
 	u8 bitoffset;
@@ -40,7 +40,7 @@ struct generic_addr {
 	u64 addr;
 } __attribute__((packed));
 
-enum addr_space {
+enum acpi_addr_space {
 	ADDR_SPACE_SYSTEM_MEMORY   = 0,
 	ADDR_SPACE_SYSTEM_IO       = 1,
 	ADDR_SPACE_PCI_CONFIG      = 2,
@@ -58,7 +58,7 @@ enum addr_space {
 	ADDR_SPACE_OEM_END         = 255,
 };
 
-enum access_size {
+enum acpi_access_size {
 	ACCESS_SIZE_UNDEFINED = 0,
 	ACCESS_SIZE_8         = 1,
 	ACCESS_SIZE_16        = 2,
@@ -66,8 +66,8 @@ enum access_size {
 	ACCESS_SIZE_64        = 4,
 };
 
-struct fadt {
-	struct sdt_header header;
+struct acpi_fadt {
+	struct acpi_sdt_header header;
 	u32 firmware_ctrl;
 	u32 dsdt;
 
@@ -110,7 +110,7 @@ struct fadt {
 	u8 reserved2;
 	u32 flags;
 
-	struct generic_addr reset_reg;
+	struct acpi_generic_addr reset_reg;
 
 	u8 reset_value;
 	u8 reserved3[3];
@@ -118,13 +118,22 @@ struct fadt {
 	u64 x_firmware_control;
 	u64 x_dsdt;
 
-	struct generic_addr x_pm1a_event_block;
-	struct generic_addr x_pm1b_event_block;
-	struct generic_addr x_pm1a_control_block;
-	struct generic_addr x_pm1b_control_block;
-	struct generic_addr x_pm2_control_block;
-	struct generic_addr x_pm_timer_block;
-	struct generic_addr x_gpe0_block;
-	struct generic_addr x_gpe1_block;
+	struct acpi_generic_addr x_pm1a_event_block;
+	struct acpi_generic_addr x_pm1b_event_block;
+	struct acpi_generic_addr x_pm1a_control_block;
+	struct acpi_generic_addr x_pm1b_control_block;
+	struct acpi_generic_addr x_pm2_control_block;
+	struct acpi_generic_addr x_pm_timer_block;
+	struct acpi_generic_addr x_gpe0_block;
+	struct acpi_generic_addr x_gpe1_block;
+} __attribute__((packed));
+
+struct acpi_hpet {
+	struct acpi_sdt_header header;
+	u32 capabilities;
+	struct acpi_generic_addr base_address;
+	u8 hpet_id;
+	u16 minimum_tick;
+	u8 page_protection;
 } __attribute__((packed));
 

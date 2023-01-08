@@ -47,8 +47,21 @@ void kmain(struct boot_info *boot_info) {
 	process_init(boot_info);
 	process_create("/modules/osl.elf");
 
+	kloop();
+}
+
+void kloop(void) {
+	struct boot_info *boot_info = boot_info_get();
+	char buf[80];
+	int fd = vfs_open("/dev/date");
+	struct io_device *dev = vfs_get(fd);
 	while(1) {
+		asm("sti");
 		asm("hlt");
+		int len = dev->read(dev, (u8*) buf, 80, 0);
+		boot_info->fb_print(buf, len);
+		boot_info->fb_print("\r", 1);
+		printf("%s\r", buf);
 	}
 }
 

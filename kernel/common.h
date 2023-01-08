@@ -43,3 +43,5 @@ typedef _Bool bool;
 
 #define ALIGNUP_PAGE(val) ((val + (PAGE_SIZE - 1)) / PAGE_SIZE * PAGE_SIZE)
 
+void kloop(void);
+

@@ -1,5 +1,6 @@
 #include <process/process.h>
 #include <process/elf.h>
+#include <process/scheduler.h>
 
 #include <boot/boot_info.h>
 #include <memory/vmm.h>
@@ -45,6 +46,8 @@ void process_init(struct boot_info *boot_info) {
 	for (u64 i = 0; i < MAX_PROCESSES; i++) {
 		_processes[i] = (struct process){0};
 	}
+
+	scheduler_init();
 }
 
 u64 process_create(const char *name) {

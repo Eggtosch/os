@@ -34,6 +34,7 @@ typedef void (*isr_func)(struct cpu_state*);
 #define INT_KERNEL (0)
 #define INT_USER   (1)
 
+#define INT_PIT        (0x20)
 #define INT_KEYBOARD   (0x21)
 #define INT_SLAVE_IRQS (0x22)
 #define INT_RTC        (0x28)
