@@ -8,6 +8,8 @@ BOOT_FILES     := bin/kernel.elf					\
 					limine/limine-cd-efi.bin
 INIT_PROGRAM   := bin/init.elf
 
+BINDIR    := bin
+
 ISO       := bin/os.iso
 QEMU_UEFI := /usr/share/ovmf/OVMF.fd
 
@@ -19,14 +21,12 @@ LOG_DD      := $(LOG_DIR)/dd.log
 LIMINE_DIR := limine
 CROSS_COMPILER := cross-compiler
 
-
 .PHONY: build
-build: | $(LIMINE_DIR) $(CROSS_COMPILER)
+build: | $(LIMINE_DIR) $(CROSS_COMPILER) $(BINDIR) libc user
 	@# create needed directories
-	mkdir -p bin $(FS_BOOT_DIR) $(FS_MODULES_DIR) $(LOG_DIR)
-	@# make kernel and user submodules
+	mkdir -p $(FS_BOOT_DIR) $(FS_MODULES_DIR) $(LOG_DIR)
+	@# make kernel
 	make --no-print-directory -C kernel all -j$(shell nproc)
-	make --no-print-directory -C user all -j$(shell nproc)
 	@# copy kernel runtime files
 	cp -u $(BOOT_FILES) $(FS_BOOT_DIR)
 	cp -u $(INIT_PROGRAM) $(FS_MODULES_DIR)
@@ -40,6 +40,9 @@ build: | $(LIMINE_DIR) $(CROSS_COMPILER)
 	@./limine/limine-deploy $(ISO) 2> $(LOG_LIMINE)  || (cat $(LOG_LIMINE) && false)
 	@echo ./limine/limine-deploy $(ISO)
 
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
 $(CROSS_COMPILER):
 	./scripts/build-cross-compiler.sh
 
@@ -52,6 +55,14 @@ $(LIMINE_DIR):
 	rm limine/Makefile limine/LICENSE.md limine/install-sh
 	rm limine/.gitignore
 	rm -rf limine/.git
+
+.PHONY: libc
+libc: | $(BINDIR)
+	$(MAKE) --no-print-directory -C libc -j$(nproc)
+
+.PHONY: user
+user: | $(BINDIR)
+	$(MAKE) --no-print-directory -C user all -j$(nproc)
 
 .PHONY: fonts
 fonts:
@@ -76,8 +87,9 @@ install:
 
 .PHONY: clean
 clean:
-	make --no-print-directory -C kernel clean
-	make --no-print-directory -C user clean-all
+	$(MAKE) --no-print-directory -C kernel clean
+	$(MAKE) --no-print-directory -C user clean-all
+	$(MAKE) --no-print-directory -C libc clean
 	rm -rf bin
 	rm -f $(ISO)
 	rm -rf $(FS_DIR)

@@ -10,7 +10,7 @@ clean-all: $(PROGRAMS_CLEAN)
 
 $(PROGRAMS):
 	$(eval TARGET := $(BINDIR)/$(patsubst %.user,%.elf,$@))
-	$(MAKE) --no-print-directory -C $@ TARGET=$(TARGET)
+	$(MAKE) -C $@ TARGET=$(TARGET)
 
 $(PROGRAMS_CLEAN):
 	$(eval DIR    := $(patsubst %-clean,%,$@))

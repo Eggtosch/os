@@ -2,9 +2,9 @@ CC      := ../../cross-compiler/bin/x86_64-elf-gcc
 LD      := ../../cross-compiler/bin/x86_64-elf-ld
 
 CFLAGS =									\
-	-Isrc/ -nostdinc -mcmodel=large			\
+	-Isrc/ -I../../libc/include/ -nostdinc	\
 	-Wall -Wextra							\
-	-O2 -pipe								\
+	-O2 -pipe -mcmodel=large				\
 	-ffreestanding -fno-stack-protector		\
 	-MMD -MP
 
@@ -12,7 +12,7 @@ LDFLAGS =									\
 	-T../user.ld							\
 	-nostdlib								\
 	-zmax-page-size=0x1000					\
-	-static
+	-static -L../../libc/bin -lc
 
 OBJDIR       := .bin
 ALL_SRC_DIRS := $(shell find . -type d ! -path "./$(OBJDIR)" ! -path "./$(OBJDIR)/*" -printf '%P\n')

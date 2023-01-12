@@ -1,19 +1,15 @@
-CC      := ../../cross-compiler/bin/x86_64-elf-gcc
-LD      := ../../cross-compiler/bin/x86_64-elf-ld
+CC      := ../cross-compiler/bin/x86_64-elf-gcc
+LD      := ../cross-compiler/bin/x86_64-elf-ld
+AR      := ../cross-compiler/bin/x86_64-elf-ar
 
 CFLAGS =									\
-	-Isrc/ -I../../libc/include/ -nostdinc	\
+	-Isrc/ -Iinclude/ -nostdinc		\
 	-Wall -Wextra							\
 	-O2 -pipe -mcmodel=large				\
 	-ffreestanding -fno-stack-protector		\
 	-MMD -MP
 
-LDFLAGS =									\
-	-T../user.ld							\
-	-nostdlib								\
-	-zmax-page-size=0x1000					\
-	-static -L../../libc/bin -lc
-
+TARGET       := bin/libc.a
 OBJDIR       := .bin
 ALL_SRC_DIRS := $(shell find . -type d ! -path "./$(OBJDIR)" ! -path "./$(OBJDIR)/*" -printf '%P\n')
 MKDIRS       := $(patsubst %, $(OBJDIR)/%, $(ALL_SRC_DIRS))
@@ -35,8 +31,8 @@ $(MKDIRS):
 	mkdir -p $(MKDIRS)
 
 $(TARGET): $(TARGET_OBJS)
-	@$(LD) $(TARGET_OBJS) $(LDFLAGS) -o $@
-	@echo LD $(@F)
+	@$(AR) rcs $(TARGET) $(TARGET_OBJS)
+	@echo AR $(@F)
 
 $(OBJDIR)/%.o: %.asm
 	@nasm -f elf64 $< -o $@
