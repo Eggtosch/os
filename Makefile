@@ -6,7 +6,7 @@ BOOT_FILES     := bin/kernel.elf					\
 					limine/limine.sys				\
 					limine/limine-cd.bin			\
 					limine/limine-cd-efi.bin
-KERNEL_MODULES := bin/osl.elf bin/osl.bin programs/shell.osl
+INIT_PROGRAM   := bin/init.elf
 
 ISO       := bin/os.iso
 QEMU_UEFI := /usr/share/ovmf/OVMF.fd
@@ -24,12 +24,12 @@ CROSS_COMPILER := cross-compiler
 build: | $(LIMINE_DIR) $(CROSS_COMPILER)
 	@# create needed directories
 	mkdir -p bin $(FS_BOOT_DIR) $(FS_MODULES_DIR) $(LOG_DIR)
-	@# make kernel and osl submodules
+	@# make kernel and user submodules
 	make --no-print-directory -C kernel all -j$(shell nproc)
-	make --no-print-directory -C osl all -j$(shell nproc)
+	make --no-print-directory -C user all -j$(shell nproc)
 	@# copy kernel runtime files
 	cp -u $(BOOT_FILES) $(FS_BOOT_DIR)
-	cp -u $(KERNEL_MODULES) $(FS_MODULES_DIR)
+	cp -u $(INIT_PROGRAM) $(FS_MODULES_DIR)
 	@# create iso file from directory
 	@$(eval ISO_CMD := xorriso -as mkisofs -b boot/limine-cd.bin -no-emul-boot -boot-load-size 4 -boot-info-table \
 			--efi-boot boot/limine-cd-efi.bin -efi-boot-part --efi-boot-image --protective-msdos-label \
@@ -56,7 +56,6 @@ $(LIMINE_DIR):
 .PHONY: fonts
 fonts:
 	./scripts/gen_font_bitmap.rb fonts/ kernel/console/font.gen.h
-	cp -u kernel/console/font.gen.h osl/src/font.gen.h
 
 .PHONY: run
 run: build
@@ -78,7 +77,7 @@ install:
 .PHONY: clean
 clean:
 	make --no-print-directory -C kernel clean
-	make --no-print-directory -C osl clean
+	make --no-print-directory -C user clean-all
 	rm -rf bin
 	rm -f $(ISO)
 	rm -rf $(FS_DIR)

@@ -20,5 +20,3 @@ void _start(const char *program, u64 progsize) {
 	}
 }
 
-// objdump -b binary -m i386:x86-64 --adjust-vma=0x80000000 -D bin/osl.bin
-

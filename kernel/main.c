@@ -45,7 +45,7 @@ void kmain(struct boot_info *boot_info) {
 	vfs_print_entries();
 
 	process_init(boot_info);
-	process_create("/modules/osl.elf");
+	process_create("/modules/init.elf");
 
 	kloop();
 }

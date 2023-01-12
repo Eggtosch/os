@@ -53,12 +53,12 @@ void process_init(struct boot_info *boot_info) {
 u64 process_create(const char *name) {
 	struct kernel_module *km = search_module(name);
 	if (km == NULL) {
-		return 0;
+		panic("Could not find kernel module %s\n", name);
 	}
 
 	u64 pid = first_free_process();
 	if (pid == 0) {
-		return 0;
+		panic("No free processes\n");
 	}
 
 	int err = elf_validate(km->addr);
