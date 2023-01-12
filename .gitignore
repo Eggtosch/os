@@ -5,6 +5,7 @@ compile_commands.json
 # binaries and auto generated
 **/.bin/**/*
 bin/**/*
+libc/bin/**/*
 cross-compiler/**/*
 fs/**/*
 limine/**/*

@@ -11,6 +11,7 @@ CFLAGS =									\
 
 TARGET       := bin/libc.a
 OBJDIR       := .bin
+BINDIR       := bin
 ALL_SRC_DIRS := $(shell find . -type d ! -path "./$(OBJDIR)" ! -path "./$(OBJDIR)/*" -printf '%P\n')
 MKDIRS       := $(patsubst %, $(OBJDIR)/%, $(ALL_SRC_DIRS))
 MKDIRS       += $(OBJDIR)
@@ -25,7 +26,10 @@ TARGET_OBJS  += $(ASMOBJS)
 HEADER_DEPS  := $(CFILES:%.c=$(OBJDIR)/%.d)
 
 .PHONY: all
-all: $(MKDIRS) $(TARGET)
+all: $(MKDIRS) $(BINDIR) $(TARGET)
+
+$(BINDIR):
+	mkdir -p $(BINDIR)
 
 $(MKDIRS):
 	mkdir -p $(MKDIRS)
