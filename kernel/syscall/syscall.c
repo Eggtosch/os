@@ -10,62 +10,81 @@
 #include <common.h>
 
 
-static u64 sys_open(struct cpu_state *cpu_state) {
+static void sys_open(struct cpu_state *cpu_state) {
 	const char *name = (const char*) cpu_state->rbx;
-	u64 flags        =               cpu_state->rcx;
-	(void) flags;
-	int fd = vfs_open(name);
-	return fd;
+	cpu_state->rax = vfs_open(name);
 }
 
-static u64 sys_read(struct cpu_state *cpu_state) {
+static void sys_read(struct cpu_state *cpu_state) {
 	int fd       = (int)   cpu_state->rbx;
 	void *buffer = (void*) cpu_state->rcx;
 	u64 count    =         cpu_state->rdx;
 	u64 offset   =         cpu_state->rdi;
 	struct io_device *stream = vfs_get(fd);
 	if (stream == NULL) {
-		return -1;
+		cpu_state->rax = -1;
+	} else {
+		cpu_state->rax = stream->read(stream, buffer, count, offset);
 	}
-	return stream->read(stream, buffer, count, offset);
 }
 
-static u64 sys_write(struct cpu_state *cpu_state) {
+static void sys_write(struct cpu_state *cpu_state) {
 	int fd       = (int)   cpu_state->rbx;
 	void *buffer = (void*) cpu_state->rcx;
 	u64 count    =         cpu_state->rdx;
 	u64 offset   =         cpu_state->rdi;
 	struct io_device *stream = vfs_get(fd);
 	if (stream == NULL) {
-		return -1;
+		cpu_state->rax = -1;
+	} else {
+		cpu_state->rax = stream->write(stream, buffer, count, offset);
 	}
-	return stream->write(stream, buffer, count, offset);
 }
 
-static u64 sys_mmap(struct cpu_state *cpu_state) {
-	return cpu_state->rax;
+static void sys_poll(struct cpu_state *cpu_state) {}
+
+static void sys_mmap(struct cpu_state *cpu_state) {}
+static void sys_munmap(struct cpu_state *cpu_state) {}
+static void sys_sharedmem(struct cpu_state *cpu_state) {}
+
+static void sys_exec(struct cpu_state *cpu_state) {
+	const char *elf = (const char*) cpu_state->rbx;
+	process_create(elf);
 }
 
-static u64 sys_munmap(struct cpu_state *cpu_state) {
-	return cpu_state->rax;
-}
-
-static u64 sys_exit(struct cpu_state *cpu_state) {
+static void sys_exit(struct cpu_state *cpu_state) {
+	(void) cpu_state;
 	struct process *p = process_get(process_current());
 	vmm_set_pagedir(NULL);
 	vmm_pagedir_destroy(p->pagedir);
 	kloop();
-	return cpu_state->rax;
 }
 
+static void sys_clock_time(struct cpu_state *cpu_state) {}
+static void sys_clock_res(struct cpu_state *cpu_state) {}
+static void sys_sleep(struct cpu_state *cpu_state) {}
 
-u64 (*_handlers[])(struct cpu_state*) = {
-	sys_open,
-	sys_read,
-	sys_write,
-	sys_mmap,
-	sys_munmap,
-	sys_exit
+void (*_handlers[])(struct cpu_state*) = {
+	// file system calls
+	sys_open, sys_read, sys_write, sys_poll,
+	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
+	// memory system calls
+	sys_mmap, sys_munmap, sys_sharedmem, NULL,
+	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
+	// process management system calls
+	sys_exec, sys_exit, NULL, NULL,
+	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
+	// time system calls
+	sys_clock_time, sys_clock_res, sys_sleep, NULL,
+	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
 };
 
 
@@ -74,7 +93,8 @@ static void syscall_handle(struct cpu_state *cpu_state) {
 	if (syscall_number >= sizeof(_handlers) / sizeof(_handlers[0])) {
 		cpu_state->rax = -1;
 	} else {
-		cpu_state->rax = _handlers[syscall_number](cpu_state);
+		printf("syscall %#x\n", syscall_number);
+		_handlers[syscall_number](cpu_state);
 	}
 }
 

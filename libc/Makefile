@@ -2,11 +2,13 @@ CC      := ../cross-compiler/bin/x86_64-elf-gcc
 LD      := ../cross-compiler/bin/x86_64-elf-ld
 AR      := ../cross-compiler/bin/x86_64-elf-ar
 
-CFLAGS =									\
-	-Isrc/ -Iinclude/ -nostdinc		\
-	-Wall -Wextra							\
-	-O2 -pipe -mcmodel=large				\
-	-ffreestanding -fno-stack-protector		\
+CFLAGS =										\
+	-Isrc/ -Iinclude/ -nostdinc					\
+	-Wall -Wextra								\
+	-O2 -pipe -mcmodel=large -fno-pic			\
+	-mno-80387 -mno-mmx -mno-3dnow -mno-sse2	\
+	-mno-sse2									\
+	-ffreestanding -fno-stack-protector			\
 	-MMD -MP
 
 TARGET       := bin/libc.a

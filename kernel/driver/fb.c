@@ -130,14 +130,14 @@ static u64 fb_write(struct io_device *dev, u8 *buf, u64 buflen, __unused u64 off
 		return 0;
 	}
 
-	u32 *dst = (u32*)(fb_info->fb_addr + (y * fb_info->fb_pitch) + x);
+	u32 *dst = fb_info->fb_addr + y * fb_info->fb_pitch + x;
 	u32 *src = (u32*) (buf + 8);
 
 	for (u64 _y = 0; _y < height; _y++) {
 		for (u64 _x = 0; _x < width; _x++) {
 			if (*src & PIXEL_CHANGED) {
 				*src &= ~PIXEL_CHANGED;
-				dst[x] = *src;
+				dst[_x] = *src;
 			}
 			src++;
 		}

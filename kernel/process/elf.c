@@ -81,6 +81,17 @@ __unused static void print_sections(u8 *elf) {
 	}
 }
 
+__unused static void print_segments(u8 *elf) {
+	struct elf_header *header = (struct elf_header*) elf;
+	for (int i = 0; i < header->phdr_count; i++) {
+		struct elf64_phdr *phdr = (void*) elf + (header->phdr_offset + i * header->phdr_size);
+		if (phdr->type != PT_LOAD) {
+			continue;
+		}
+		printf("load: vaddr = %#x, filesize = %#x, memsize = %#x\n", phdr->vaddr, phdr->filesize, phdr->memsize);
+	}
+}
+
 int elf_validate(u8 *elf) {
 	static u8 elf_header[] = {0x7f, 'E', 'L', 'F'};
 	struct elf_header *header = (struct elf_header*) elf;
@@ -114,6 +125,9 @@ int elf_load(u8 *elf, u64 **pagedir, u64 *entry) {
 		if (phdr->type != PT_LOAD) {
 			continue;
 		}
+		if (phdr->vaddr == 0) {
+			continue;
+		}
 		if (phdr->vaddr < lowest_vaddr) {
 			lowest_vaddr = phdr->vaddr;
 		}
@@ -131,7 +145,10 @@ int elf_load(u8 *elf, u64 **pagedir, u64 *entry) {
 		if (phdr->type != PT_LOAD) {
 			continue;
 		}
-		u8 *dest = (u8*) vmm_vaddr_to_phys(pd, phdr->vaddr) + (phdr->vaddr & 0xfff);
+		if (phdr->vaddr == 0) {
+			continue;
+		}
+		u8 *dest = (u8*) vmm_vaddr_to_phys(pd, phdr->vaddr);
 		u8 *src = (u8*) elf + phdr->offset;
 		u64 size = phdr->filesize;
 		memcpy(dest, src, size);

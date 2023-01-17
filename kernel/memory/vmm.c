@@ -199,6 +199,7 @@ void vmm_map_data(u64 *pagedir, u64 virt_addr, void *data, u64 data_size) {
 }
 
 u64 vmm_vaddr_to_phys(u64 *pagedir, u64 virt_addr) {
+	u64 page_offset = virt_addr & 0xfff;
 	virt_addr = virt_addr & ~((u64) 0xfff);
 	u64 index4 = (virt_addr & ((u64)0x1ff << 39)) >> 39;
 	u64 index3 = (virt_addr & ((u64)0x1ff << 30)) >> 30;
@@ -210,7 +211,7 @@ u64 vmm_vaddr_to_phys(u64 *pagedir, u64 virt_addr) {
 	u64 *pagedir2 = get_pagedir_level(pagedir3, index3);
 	u64 *pagedir1 = get_pagedir_level(pagedir2, index2);
 
-	return pagedir1[index1] & ~((u64) 0b111);
+	return (pagedir1[index1] & ~((u64) 0b111)) + page_offset;
 }
 
 void vmm_unmap(u64 *pagedir, u64 virt_addr, u64 size) {
