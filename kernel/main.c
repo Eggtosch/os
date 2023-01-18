@@ -5,6 +5,8 @@
 #include <memory/pmm.h>
 #include <memory/vmm.h>
 
+#include <framebuffer/framebuffer.h>
+
 #include <cpu/cpu.h>
 #include <acpi/acpi.h>
 
@@ -27,8 +29,9 @@ void kmain(struct boot_info *boot_info) {
 	pmm_init(boot_info);
 	vmm_init();
 
-	cpu_init(boot_info);
+	framebuffer_init(boot_info);
 
+	cpu_init(boot_info);
 	acpi_init(boot_info);
 
 	vfs_init();

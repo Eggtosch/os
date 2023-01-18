@@ -21,5 +21,9 @@ void syscall_init(struct boot_info *boot_info);
  * 0x30: struct time clock_time(void);
  * 0x31: struct time clock_res(void);
  * 0x32: struct time sleep(struct time time);
+ *
+ * 0x40: struct fb_info fb_info(void);
+ * 0x41: i64 fb_read(u64 dimensions, u32 *buf);
+ * 0x42: i64 fb_write(u64 dimensions, u32 *buf);
  */
 

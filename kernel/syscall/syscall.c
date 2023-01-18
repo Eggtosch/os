@@ -6,8 +6,7 @@
 #include <memory/vmm.h>
 #include <io/stdio.h>
 #include <process/process.h>
-
-#include <common.h>
+#include <framebuffer/framebuffer.h>
 
 
 static void sys_open(struct cpu_state *cpu_state) {
@@ -64,6 +63,30 @@ static void sys_clock_time(struct cpu_state *cpu_state) {}
 static void sys_clock_res(struct cpu_state *cpu_state) {}
 static void sys_sleep(struct cpu_state *cpu_state) {}
 
+static void sys_fb_info(struct cpu_state *cpu_state) {
+	struct boot_info *boot_info = boot_info_get();
+	struct fb_info *fb_info = &boot_info->fb_info;
+	cpu_state->rax = (fb_info->fb_width << 16) | fb_info->fb_height;
+}
+
+static void sys_fb_read(struct cpu_state *cpu_state) {
+	u16 x = (cpu_state->rbx >> 48) & 0xffff;
+	u16 y = (cpu_state->rbx >> 32) & 0xffff;
+	u16 width = (cpu_state->rbx >> 16) & 0xffff;
+	u16 height = cpu_state->rbx & 0xffff;
+	u32 *buffer = (u32*) cpu_state->rcx;
+	cpu_state->rax = framebuffer_read(x, y, width, height, buffer);
+}
+
+static void sys_fb_write(struct cpu_state *cpu_state) {
+	u16 x = (cpu_state->rbx >> 48) & 0xffff;
+	u16 y = (cpu_state->rbx >> 32) & 0xffff;
+	u16 width = (cpu_state->rbx >> 16) & 0xffff;
+	u16 height = cpu_state->rbx & 0xffff;
+	u32 *buffer = (u32*) cpu_state->rcx;
+	cpu_state->rax = framebuffer_write(x, y, width, height, buffer);
+}
+
 void (*_handlers[])(struct cpu_state*) = {
 	// file system calls
 	sys_open, sys_read, sys_write, sys_poll,
@@ -82,6 +105,10 @@ void (*_handlers[])(struct cpu_state*) = {
 	NULL, NULL, NULL, NULL,
 	// time system calls
 	sys_clock_time, sys_clock_res, sys_sleep, NULL,
+	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL,
+	sys_fb_info, sys_fb_read, sys_fb_write, NULL,
 	NULL, NULL, NULL, NULL,
 	NULL, NULL, NULL, NULL,
 	NULL, NULL, NULL, NULL,
