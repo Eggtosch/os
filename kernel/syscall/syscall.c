@@ -2,10 +2,16 @@
 
 #include <syscall/gdt.h>
 #include <interrupts/interrupts.h>
+
 #include <vfs/vfs.h>
+
 #include <memory/vmm.h>
-#include <io/stdio.h>
+
 #include <process/process.h>
+
+#include <driver/util.h>
+#include <acpi/hpet.h>
+
 #include <framebuffer/framebuffer.h>
 
 
@@ -59,8 +65,16 @@ static void sys_exit(struct cpu_state *cpu_state) {
 	kloop();
 }
 
-static void sys_clock_time(struct cpu_state *cpu_state) {}
-static void sys_clock_res(struct cpu_state *cpu_state) {}
+static void sys_clock_time(struct cpu_state *cpu_state) {
+	cpu_state->rax = time();
+	cpu_state->rbx = hpet_current_ns();
+}
+
+static void sys_clock_res(struct cpu_state *cpu_state) {
+	cpu_state->rax = 0;
+	cpu_state->rbx = hpet_precision_ns();
+}
+
 static void sys_sleep(struct cpu_state *cpu_state) {}
 
 static void sys_fb_info(struct cpu_state *cpu_state) {
@@ -120,7 +134,6 @@ static void syscall_handle(struct cpu_state *cpu_state) {
 	if (syscall_number >= sizeof(_handlers) / sizeof(_handlers[0])) {
 		cpu_state->rax = -1;
 	} else {
-		printf("syscall %#x\n", syscall_number);
 		_handlers[syscall_number](cpu_state);
 	}
 }

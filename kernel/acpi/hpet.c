@@ -14,6 +14,9 @@
 #define MICROSECONDS (2)
 #define NANOSECONDS  (3)
 
+#define NS_PER_SEC (1000000000UL)
+#define FS_PER_NS (1000000UL)
+
 struct hpet {
 	u64 capabilities;
 	u64 reserved1;
@@ -32,6 +35,7 @@ struct hpet {
 };
 
 static struct hpet *hpet = NULL;
+static u64 precision_ns;
 
 static u64 timern_timeout[2];
 static bool timern_periodic_capable[2];
@@ -75,6 +79,8 @@ void hpet_register(u64 addr) {
 
 	hpet->counter = 0;
 	hpet->config |= HPET_EN | HPET_LEGACY_EN;
+
+	precision_ns = read_bitfield(hpet->capabilities, 32, 32) / FS_PER_NS;
 }
 
 void hpet_next_timeout(int timern) {
@@ -86,5 +92,17 @@ void hpet_next_timeout(int timern) {
 	}
 
 	hpet->timers[timern].comparator += timern_timeout[timern];
+}
+
+u64 hpet_precision_ns(void) {
+	return precision_ns;
+}
+
+u64 hpet_current_ns(void) {
+	u64 next_ns = hpet->timers[HPET_TIMER_RTC].comparator / FS_PER_NS;
+	u64 current_ns = hpet->counter / FS_PER_NS;
+	u64 ns_until_next_second = next_ns - current_ns;
+	u64 time_since_last_sec = NS_PER_SEC - ns_until_next_second;
+	return time_since_last_sec;
 }
 
