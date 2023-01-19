@@ -36,8 +36,8 @@ static u64 cpuinfo_read(__unused struct io_device *dev, u8 *buf, u64 buflen, u64
 }
 
 static struct driver_file driver_files[] = {
-	{"/dev/cpuinfo", {cpuinfo_read, NULL, NULL}},
-	{NULL, {NULL, NULL, NULL}},
+	{"/dev/cpuinfo", {cpuinfo_read, NULL, NULL, NULL}},
+	{NULL, {NULL, NULL, NULL, NULL}},
 };
 
 static void resize(char **s, u64 *n_pages) {

@@ -111,9 +111,9 @@ static u64 rtc_read_date(__unused struct io_device *dev, u8 *buf, u64 buflen, __
 }
 
 static struct driver_file driver_files[] = {
-	{"/dev/date", {rtc_read_date, NULL, NULL}},
-	{"/dev/time", {rtc_read_time, NULL, NULL}},
-	{NULL, {NULL, NULL, NULL}},
+	{"/dev/date", {rtc_read_date, NULL, NULL, NULL}},
+	{"/dev/time", {rtc_read_time, NULL, NULL, NULL}},
+	{NULL, {NULL, NULL, NULL, NULL}},
 };
 
 static void rtc_init(__unused struct boot_info *boot_info) {

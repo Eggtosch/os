@@ -24,8 +24,8 @@ static u64 random_read(__unused struct io_device *dev, u8 *buf, u64 buflen, __un
 }
 
 static struct driver_file driver_files[] = {
-	{"/dev/random", {random_read, NULL, NULL}},
-	{NULL, {NULL, NULL, NULL}},
+	{"/dev/random", {random_read, NULL, NULL, NULL}},
+	{NULL, {NULL, NULL, NULL, NULL}},
 };
 
 static void random_init(__unused struct boot_info *boot_info) {

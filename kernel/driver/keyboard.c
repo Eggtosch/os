@@ -48,8 +48,8 @@ static void isr_keyboard(__unused struct cpu_state *cpu_state) {
 }
 
 static struct driver_file driver_files[] = {
-	{"/dev/keyboard", {keyboard_read, NULL, NULL}},
-	{NULL, {NULL, NULL, NULL}}
+	{"/dev/keyboard", {keyboard_read, NULL, NULL, NULL}},
+	{NULL, {NULL, NULL, NULL, NULL}}
 };
 
 static void keyboard_init(__unused struct boot_info *boot_info) {

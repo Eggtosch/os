@@ -1,6 +1,7 @@
 #include <process/process.h>
 #include <process/elf.h>
 #include <process/scheduler.h>
+#include <process/pipe.h>
 
 #include <boot/boot_info.h>
 #include <memory/vmm.h>
@@ -9,13 +10,12 @@
 #include <panic.h>
 #include <io/stdio.h>
 
+#define MAX_PROCESSES (1000)
+
+static struct process _processes[MAX_PROCESSES];
+static pid_t _current_process = 0;
 
 static struct module_info *_module_info;
-
-#define MAX_PROCESSES (1000)
-static struct process _processes[1000];
-static u64 _current_process = 0;
-
 
 extern void asm_jump_usermode(u64 addr, u64 stack, u64 prog, u64 size);
 
@@ -31,67 +31,114 @@ static struct kernel_module *search_module(const char *module) {
 	return NULL;
 }
 
-static u64 first_free_process(void) {
-	for (u64 i = 1; i < MAX_PROCESSES; i++) {
+static pid_t first_free_process(void) {
+	for (pid_t i = 0; i < MAX_PROCESSES; i++) {
 		if (_processes[i].status == PROC_NONE) {
 			return i;
 		}
 	}
-	return 0;
+
+	panic("No free processes left\n");
 }
 
 void process_init(struct boot_info *boot_info) {
 	_module_info = &boot_info->module_info;
 
-	for (u64 i = 0; i < MAX_PROCESSES; i++) {
+	for (pid_t i = 0; i < MAX_PROCESSES; i++) {
 		_processes[i] = (struct process){0};
 	}
 
 	scheduler_init();
 }
 
-u64 process_create(const char *name) {
+static pid_t load_to_memory(const char *name, u64 **pagedir, u64 *entry) {
 	struct kernel_module *km = search_module(name);
 	if (km == NULL) {
 		panic("Could not find kernel module %s\n", name);
 	}
 
-	u64 pid = first_free_process();
-	if (pid == 0) {
-		panic("No free processes\n");
-	}
+	pid_t pid = first_free_process();
 
 	int err = elf_validate(km->addr);
 	if (err != ELF_OK) {
 		panic("Could not validate %s: %s\n", name, elf_error_str(err));
 	}
 
-	u64 *pagedir;
-	u64 entry;
-	err = elf_load(km->addr, &pagedir, &entry);
+	err = elf_load(km->addr, pagedir, entry);
 	if (err != ELF_OK) {
 		panic("Could not load %s: %s\n", name, elf_error_str(err));
 	}
 
-	vmm_map(pagedir, VMM_USER_STACK_END - VMM_USER_STACK_LEN, VMM_USER_STACK_LEN);
-	vmm_set_pagedir(pagedir);
+	vmm_map(*pagedir, VMM_USER_STACK_END - VMM_USER_STACK_LEN, VMM_USER_STACK_LEN);
+	vmm_set_pagedir(*pagedir);
 
-	_processes[pid].status  = PROC_RUNNING;
-	_processes[pid].pagedir = pagedir;
-	_current_process = pid;
-
-	asm_jump_usermode(entry, VMM_USER_STACK_END, (u64) NULL, 0);
 	return pid;
 }
 
-struct process *process_get(u64 pid) {
-	if (pid == 0 || pid >= MAX_PROCESSES) {
-		return NULL;
+void process_start_init(const char *name) {
+	u64 *pagedir;
+	u64 entry;
+	pid_t pid = load_to_memory(name, &pagedir, &entry);
+	if (pid != 0) {
+		panic("Init process already started!\n");
 	}
+
+	_processes[0].status  = PROC_RUNNABLE;
+	_processes[0].pagedir = pagedir;
+}
+
+pid_t process_create(const char *name) {
+	u64 *pagedir;
+	u64 entry;
+	pid_t pid = load_to_memory(name, &pagedir, &entry);
+
+	_processes[pid].status  = PROC_RUNNABLE;
+	_processes[pid].pagedir = pagedir;
+	_processes[pid].read_pipe = pipe_new();
+	_processes[pid].write_pipe = pipe_new();
+
+	//asm_jump_usermode(entry, VMM_USER_STACK_END, (u64) NULL, 0);
+	return pid;
+}
+
+struct process *process_get(pid_t pid) {
 	return &_processes[pid];
 }
 
-u64 process_current(void) {
+pid_t process_current(void) {
 	return _current_process;
+}
+
+static struct io_device *get_fd(pid_t pid, int fd) {
+	if (_processes[pid].status == PROC_NONE || fd < 0 || fd > 10) {
+		return NULL;
+	}
+
+	if (fd == 0) {
+		return &_processes[pid].read_pipe;
+	} else if (fd == 1) {
+		return &_processes[pid].write_pipe;
+	} else {
+		return _processes[pid].fds[fd - 2];
+	}
+}
+
+struct io_device *process_get_fd(pid_t pid, int fd) {
+	if (pid >= MAX_PROCESSES) {
+		return NULL;
+	}
+
+	if (pid != 0) {
+		return get_fd(pid, fd);
+	}
+
+	if (fd > MAX_PROCESSES * 2 + 8) {
+		return NULL;
+	} else if (fd < 8) {
+		return get_fd(0, fd);
+	} else {
+		pid = fd / 2;
+		return get_fd(pid, fd & 1);
+	}
 }
 

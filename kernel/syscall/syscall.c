@@ -54,14 +54,29 @@ static void sys_sharedmem(struct cpu_state *cpu_state) {}
 
 static void sys_exec(struct cpu_state *cpu_state) {
 	const char *elf = (const char*) cpu_state->rbx;
-	process_create(elf);
+	pid_t new_proc = process_create(elf);
+	cpu_state->rax = new_proc;
 }
 
 static void sys_exit(struct cpu_state *cpu_state) {
 	(void) cpu_state;
 	struct process *p = process_get(process_current());
+
+	if (p->read_pipe.close != NULL) {
+		p->read_pipe.close(&p->read_pipe);
+	}
+	if (p->write_pipe.close != NULL) {
+		p->write_pipe.close(&p->write_pipe);
+	}
+	for (int i = 0; i < 8; i++) {
+		if (p->fds[i]->close != NULL) {
+			p->fds[i]->close(p->fds[i]);
+		}
+	}
+
 	vmm_set_pagedir(NULL);
 	vmm_pagedir_destroy(p->pagedir);
+
 	kloop();
 }
 

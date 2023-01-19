@@ -13,7 +13,7 @@ __attribute__((noreturn)) void _panic(const char *file, const char *function, in
 	va_start(args, fmt);
 	va_copy(fb_args, args);
 
-	struct io_device fb_dev = {NULL, panic_write_fb, boot_info_get()};
+	struct io_device fb_dev = {NULL, panic_write_fb, NULL, boot_info_get()};
 
 	asm volatile("cli");
 

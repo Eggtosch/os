@@ -34,8 +34,8 @@ static u64 serial_send(__unused struct io_device *stream, u8 *buf, u64 count, __
 }
 
 static struct driver_file driver_files[] = {
-	{"/dev/serial", {serial_recv, serial_send, NULL}},
-	{NULL, {NULL, NULL, NULL}}
+	{"/dev/serial", {serial_recv, serial_send, NULL, NULL}},
+	{NULL, {NULL, NULL, NULL, NULL}}
 };
 
 struct io_device *serial_io_device_get(void) {

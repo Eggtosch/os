@@ -55,6 +55,10 @@ void vfs_unmount(int fd) {
 		return;
 	}
 
+	if (_vfs[fd].stream->close) {
+		_vfs[fd].stream->close(_vfs[fd].stream);
+	}
+
 	_vfs_size--;
 	_vfs[fd] = _vfs[_vfs_size];
 }
