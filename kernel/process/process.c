@@ -47,6 +47,8 @@ void process_init(struct boot_info *boot_info) {
 	}
 
 	scheduler_init();
+
+	kprintf("initialized process system\n");
 }
 
 static pid_t load_to_memory(const char *name, u64 **pagedir, u64 *entry) {
@@ -83,11 +85,17 @@ void process_start_init(const char *name) {
 
 	_processes[0].status  = PROC_RUNNABLE;
 	_processes[0].pagedir = pagedir;
+	_processes[0].entry   = entry;
 }
 
 pid_t process_create(const char *name) {
 	u64 *pagedir;
 	u64 entry;
+
+	if (_processes[0].status == PROC_NONE) {
+		panic("Can't start %s, init process does not exist\n", name);
+	}
+
 	pid_t pid = load_to_memory(name, &pagedir, &entry);
 
 	_processes[pid].status  = PROC_RUNNABLE;

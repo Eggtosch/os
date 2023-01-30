@@ -25,9 +25,11 @@ static void pit_irq(__unused struct cpu_state *state) {
 
 void scheduler_init(void) {
 	interrupt_register(INT_PIT, pit_irq, INT_KERNEL);
+	kprintf("registered scheduler interrupt\n");
 }
 
 void scheduler_enable(bool enable) {
 	interrupt_enable(INT_PIT, enable);
+	kprintf("%sabling scheduler timer interrupts\n", enable ? "en" : "dis");
 }
 

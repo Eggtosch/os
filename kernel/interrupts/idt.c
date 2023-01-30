@@ -59,5 +59,7 @@ void idt_init(void) {
 	_idt_ptr.base  = (u64) &_idt;
 
 	asm_load_idt(&_idt_ptr);
+
+	kprintf("initialized idt\n");
 }
 

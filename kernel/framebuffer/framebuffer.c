@@ -74,7 +74,9 @@ void framebuffer_init(struct boot_info *boot_info) {
 	_fb_info = boot_info->fb_info;
 	_fb_info.fb_pitch /= 4;
 
-	enable_mtrr(_fb_info.fb_addr, _fb_info.fb_pitch, _fb_info.fb_height);
+	u64 error = enable_mtrr(_fb_info.fb_addr, _fb_info.fb_pitch, _fb_info.fb_height);
+	kprintf("initialized linear framebuffer: %dx%d (32 bpp, ARGB format)\n", _fb_info.fb_width, _fb_info.fb_height);
+	kprintf("framebuffer mtrr write combining %ssupported\n", error ? "un" : "");
 }
 
 i64 framebuffer_read(u16 x, u16 y, u16 width, u16 height, u32 *buffer) {

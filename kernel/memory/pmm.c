@@ -40,15 +40,15 @@ static u8 mem_bitmap_check(u64 bit) {
 
 static const char *get_memtype(u32 mem_type) {
 	switch (mem_type) {
-		case MEM_USABLE                : return "Usable";
-		case MEM_RESERVED              : return "Reserved";
-		case MEM_ACPI_RECLAIMABLE      : return "ACPI1";
-		case MEM_ACPI_NVS              : return "ACPI2";
-		case MEM_BAD_MEMORY            : return "Bad Memory";
-		case MEM_BOOTLOADER_RECLAIMABLE: return "Bootloader Reclaimable";
-		case MEM_KERNEL_AND_MODULES    : return "Kernel and Modules";
-		case MEM_FRAMEBUFFER           : return "Framebuffer";
-		default:                         return "Unknown";
+		case MEM_USABLE                : return "usable";
+		case MEM_RESERVED              : return "reserved";
+		case MEM_ACPI_RECLAIMABLE      : return "acpi1";
+		case MEM_ACPI_NVS              : return "acpi2";
+		case MEM_BAD_MEMORY            : return "bad memory";
+		case MEM_BOOTLOADER_RECLAIMABLE: return "bootloader reclaimable";
+		case MEM_KERNEL_AND_MODULES    : return "kernel and modules";
+		case MEM_FRAMEBUFFER           : return "framebuffer";
+		default:                         return "unknown";
 	}
 }
 
@@ -79,12 +79,12 @@ void pmm_init(struct boot_info *boot_info) {
 	u64 ram_top = 0;
 	struct mem_entry *largest_region = _mem_info->mem_map[0];
 
-	printf("Memory Map:\n");
+	kprintf("memory map:\n");
 
 	for (u64 i = 0; i < _mem_info->mem_entries; i++) {
 		struct mem_entry *entry = _mem_info->mem_map[i];
 
-		printf("    %#0.16x (%s): %s\n", entry->mem_base, to_unit(entry->mem_length), get_memtype(entry->mem_type));
+		kprintf("    %#0.16x (%s): %s\n", entry->mem_base, to_unit(entry->mem_length), get_memtype(entry->mem_type));
 
 		if (entry->mem_type != MEM_USABLE) {
 			continue;
@@ -137,6 +137,14 @@ void pmm_init(struct boot_info *boot_info) {
 	mem_bitmap_set(0);
 
 	cache_lowest_free_page_from(0);
+
+	struct mem_entry *last_entry = _mem_info->mem_map[_mem_info->mem_entries - 1];
+	u64 total_bytes = (u64) last_entry->mem_base + last_entry->mem_length;
+	const char *total_bytes_str = to_unit(total_bytes);
+	while (*total_bytes_str == ' ') {
+		total_bytes_str++;
+	}
+	kprintf("total system ram: %u (%s) bytes\n", total_bytes, total_bytes_str);
 }
 
 u64 pmm_alloc(u64 page_count) {

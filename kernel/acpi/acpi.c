@@ -109,6 +109,8 @@ static void parse_fadt(struct acpi_rsdt *rsdt) {
 	if (acpi_fadt == NULL) {
 		panic("ACPI fadt table not found!\n");
 	}
+
+	kprintf("found acpi table: FACP\n");
 }
 
 static void parse_hpet(struct acpi_rsdt *rsdt) {
@@ -116,6 +118,8 @@ static void parse_hpet(struct acpi_rsdt *rsdt) {
 	if (hpet == NULL) {
 		panic("ACPI hpet table not found!\n");
 	}
+
+	kprintf("found acpi table: HPET\n");
 	hpet_register(hpet->base_address.addr);
 }
 

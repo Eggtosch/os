@@ -26,6 +26,8 @@ extern driver_init_t __stop_driver_init[];
 
 void kmain(struct boot_info *boot_info) {
 	stdio_init(serial_io_device_get());
+	kprintf("collected boot information\n");
+	kprintf("initialized early stdio output (serial device)\n");
 
 	pmm_init(boot_info);
 	vmm_init();
@@ -41,15 +43,15 @@ void kmain(struct boot_info *boot_info) {
 	syscall_init(boot_info);
 
 	u64 ndrivers = (__stop_driver_init - __start_driver_init);
+	kprintf("found %d available drivers\n", ndrivers);
 	for (u64 i = 0; i < ndrivers; i++) {
 		driver_init_t *init = __start_driver_init + i;
+		kprintf("loading driver: %s\n", init->name);
 		init->func(boot_info);
 	}
 
-	vfs_print_entries();
-
 	process_init(boot_info);
-	process_create("/modules/init.elf");
+	process_start_init("/modules/init.elf");
 	scheduler_enable(true);
 
 	kloop();
@@ -71,9 +73,9 @@ void kloop(void) {
 }
 
 void kprintf(const char *fmt, ...) {
-	u64 secs = time_since_boot();
-	u64 ns = secs == 0 ? 0 : time_current_ns();
-	printf("[%.5u.%0.6u] ", secs, ns / 1000);
+	i64 secs = time_since_boot();
+	u64 ns = time_current_ns();
+	printf("[%.5u.%0.6u] ", secs == -1 ? 0 : secs, ns / 1000);
 
 	va_list args;
 	va_start(args, fmt);

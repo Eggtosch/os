@@ -53,7 +53,7 @@ i64 time(void) {
 
 i64 time_since_boot(void) {
 	if (boot_time == 0) {
-		return 0;
+		return -1;
 	}
 	return time_from_struct(rtc_global_time) - boot_time;
 }
@@ -148,6 +148,10 @@ static void rtc_init(__unused struct boot_info *boot_info) {
 
 	interrupt_enable(INT_RTC, true);
 	driver_register("rtc", driver_files);
+
+	rtc_global_time = get_rtc_struct();
+	boot_time = time_from_struct(rtc_global_time);
+
 	asm volatile("sti");
 }
 

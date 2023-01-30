@@ -1,7 +1,6 @@
 #include <interrupts/interrupts.h>
 #include <interrupts/idt.h>
 #include <interrupts/pic.h>
-#include <io/stdio.h>
 
 #include <panic.h>
 
@@ -63,11 +62,11 @@ u64 interrupt_handler(u64 rsp) {
 		if (isr_num == 0xe) {
 			u64 cr2;
 			asm volatile("mov %%cr2, %0" : "=r"(cr2) :: "memory");
-			printf("fault address: %p, error code: %#x\n", cr2, error_code);
+			kprintf("fault address: %p, error code: %#x\n", cr2, error_code);
 		} else if (isr_num == 0xd) {
 			u64 gs;
 			asm volatile("mov %%gs, %0" : "=r"(gs) :: "memory");
-			printf("gs: %#x\n", gs);
+			kprintf("gs: %#x\n", gs);
 		}
 		panic("irq %d -> %s(%#x)\nInstruction: %p\n", isr_num, exception_names[isr_num], error_code, cpu_state->rip);
 	}

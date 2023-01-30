@@ -113,7 +113,7 @@ void _start(void) {
 		   fb->blue_mask_size   ==  8, "Kernel does only support 8 bit color masks!\n");
 	assert(fb->red_mask_shift   == 16 &&
 		   fb->green_mask_shift ==  8 &&
-		   fb->blue_mask_shift  ==  0, "Kernel does only support RGB color format!\n");
+		   fb->blue_mask_shift  ==  0, "Kernel does only support ARGB color format!\n");
 
 	struct limine_memmap_response *memmap = memmap_req.response;
 	assert(memmap != NULL, "No memory map available!\n");

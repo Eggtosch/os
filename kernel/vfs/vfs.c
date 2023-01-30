@@ -26,6 +26,8 @@ void vfs_init(void) {
 	_vfs = (struct vfs_entry*) pmm_alloc(1);
 	_vfs_size = 0;
 	_vfs_cap  = ENTRIES_PER_PAGE;
+
+	kprintf("initialized virtual file system\n");
 }
 
 int vfs_mount(const char *pathname, struct io_device *stream) {
@@ -95,12 +97,5 @@ struct io_device *vfs_get(int fd) {
 		return NULL;
 	}
 	return _vfs[fd].stream;
-}
-
-void vfs_print_entries(void) {
-	kprintf("vfs entries:\n");
-	for (u64 i = 0; i < _vfs_size; i++) {
-		kprintf("    %s\n", _vfs[i].name);
-	}
 }
 

@@ -27,6 +27,8 @@ void cpu_init(__unused struct boot_info *boot_info) {
 	asm volatile("cpuid" : "=d"(ext_edx), "=c"(ext_ecx) : "a"(0x80000001) : "ebx");
 	cpuid_info.basic_flags = (u64) basic_ecx << 32 | basic_edx;
 	cpuid_info.ext_flags = (u64) ext_ecx << 32 | ext_edx;
+
+	kprintf("saved available cpu features\n");
 }
 
 bool cpu_has_flag(enum cpuid_flags flag) {

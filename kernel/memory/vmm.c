@@ -140,6 +140,7 @@ static u64 *vmm_unmap_page(u64 *pagedir, u64 virt_addr) {
 void vmm_init(void) {
 	_kernel_page_dir = vmm_get_pagedir();
 	save_kernel_pagedir_entries();
+	kprintf("kernel page directory saved\n");
 }
 
 u64 *vmm_get_pagedir(void) {

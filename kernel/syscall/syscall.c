@@ -160,5 +160,8 @@ static void syscall_handle(struct cpu_state *cpu_state) {
 void syscall_init(struct boot_info *boot_info) {
 	gdt_init(boot_info->stack_addr);
 	interrupt_register(INT_SYSCALL, syscall_handle, INT_USER);
+
+	kprintf("initialized gdt\n");
+	kprintf("registered syscall interrupt at %#x\n", INT_SYSCALL);
 }
 

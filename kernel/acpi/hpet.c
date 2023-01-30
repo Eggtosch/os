@@ -61,6 +61,8 @@ static void init_timers(void) {
 }
 
 void hpet_register(u64 addr) {
+	kprintf("register time source: hpet\n");
+
 	hpet = (struct hpet*) addr;
 
 	timern_timeout[0] = time_to_comparator(250, MILLISECONDS);
@@ -74,6 +76,9 @@ void hpet_register(u64 addr) {
 	write_word(HPET_CONFIG, config);
 
 	precision_ns = (read_word(HPET_CAPABILITIES) >> 32) / FS_PER_NS;
+
+	int ntimers = (read_word(HPET_CAPABILITIES) >> 8) & 0x1f;
+	kprintf("hpet: %d timers, %u ns precision\n", ntimers, precision_ns);
 }
 
 void hpet_next_timeout(int timern) {
@@ -91,6 +96,10 @@ u64 hpet_precision_ns(void) {
 }
 
 u64 hpet_current_ns(void) {
+	if (hpet == NULL) {
+		return 0;
+	}
+
 	u64 next_ns = read_word(HPET_TIMERN_COMPARATOR(HPET_TIMER_RTC)) * precision_ns;
 	u64 current_ns = read_word(HPET_COUNTER) * precision_ns;
 	u64 ns_until_next_second = next_ns - current_ns;
