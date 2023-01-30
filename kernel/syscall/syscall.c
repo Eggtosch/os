@@ -46,11 +46,11 @@ static void sys_write(struct cpu_state *cpu_state) {
 	}
 }
 
-static void sys_poll(struct cpu_state *cpu_state) {}
+static void sys_poll(__unused struct cpu_state *cpu_state) {}
 
-static void sys_mmap(struct cpu_state *cpu_state) {}
-static void sys_munmap(struct cpu_state *cpu_state) {}
-static void sys_sharedmem(struct cpu_state *cpu_state) {}
+static void sys_mmap(__unused struct cpu_state *cpu_state) {}
+static void sys_munmap(__unused struct cpu_state *cpu_state) {}
+static void sys_sharedmem(__unused struct cpu_state *cpu_state) {}
 
 static void sys_exec(struct cpu_state *cpu_state) {
 	const char *elf = (const char*) cpu_state->rbx;
@@ -62,14 +62,17 @@ static void sys_exit(struct cpu_state *cpu_state) {
 	(void) cpu_state;
 	struct process *p = process_get(process_current());
 
+	p->status = PROC_NONE;
+
 	if (p->read_pipe.close != NULL) {
 		p->read_pipe.close(&p->read_pipe);
 	}
 	if (p->write_pipe.close != NULL) {
 		p->write_pipe.close(&p->write_pipe);
 	}
+
 	for (int i = 0; i < 8; i++) {
-		if (p->fds[i]->close != NULL) {
+		if (p->fds[i] != NULL && p->fds[i]->close != NULL) {
 			p->fds[i]->close(p->fds[i]);
 		}
 	}
@@ -90,7 +93,7 @@ static void sys_clock_res(struct cpu_state *cpu_state) {
 	cpu_state->rbx = hpet_precision_ns();
 }
 
-static void sys_sleep(struct cpu_state *cpu_state) {}
+static void sys_sleep(__unused struct cpu_state *cpu_state) {}
 
 static void sys_fb_info(struct cpu_state *cpu_state) {
 	struct boot_info *boot_info = boot_info_get();

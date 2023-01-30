@@ -77,7 +77,7 @@ __unused static void print_sections(u8 *elf) {
 
 	for (int i = 0; i < header->shdr_count; i++) {
 		struct elf64_shdr *shdr = (void*) elf + (header->shdr_offset + i * header->shdr_size);
-		printf("%s\n", &names[shdr->sh_name]);
+		kprintf("%s\n", &names[shdr->sh_name]);
 	}
 }
 
@@ -88,7 +88,7 @@ __unused static void print_segments(u8 *elf) {
 		if (phdr->type != PT_LOAD) {
 			continue;
 		}
-		printf("load: vaddr = %#x, filesize = %#x, memsize = %#x\n", phdr->vaddr, phdr->filesize, phdr->memsize);
+		kprintf("load: vaddr = %#x, filesize = %#x, memsize = %#x\n", phdr->vaddr, phdr->filesize, phdr->memsize);
 	}
 }
 

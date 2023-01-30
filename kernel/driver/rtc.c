@@ -15,6 +15,7 @@
 i8 days_in_month[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 static struct time rtc_global_time;
+static i64 boot_time = 0;
 
 i64 time_from_struct(struct time time) {
 	i64 timestamp = 0;
@@ -48,6 +49,17 @@ i64 time_from_struct(struct time time) {
 
 i64 time(void) {
 	return time_from_struct(rtc_global_time);
+}
+
+i64 time_since_boot(void) {
+	if (boot_time == 0) {
+		return 0;
+	}
+	return time_from_struct(rtc_global_time) - boot_time;
+}
+
+u64 time_current_ns(void) {
+	return hpet_current_ns();
 }
 
 static u8 read_register(u8 reg) {
@@ -96,6 +108,11 @@ static void rtc_irq(__unused struct cpu_state *cpu_state) {
 		return;
 	}
 	rtc_global_time = get_rtc_struct();
+
+	if (boot_time == 0) {
+		boot_time = time_from_struct(rtc_global_time);
+	}
+
 	hpet_next_timeout(HPET_TIMER_RTC);
 }
 

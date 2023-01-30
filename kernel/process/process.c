@@ -17,8 +17,6 @@ static pid_t _current_process = 0;
 
 static struct module_info *_module_info;
 
-extern void asm_jump_usermode(u64 addr, u64 stack, u64 prog, u64 size);
-
 static struct kernel_module *search_module(const char *module) {
 	u32 nmodules = _module_info->module_count;
 
@@ -94,10 +92,10 @@ pid_t process_create(const char *name) {
 
 	_processes[pid].status  = PROC_RUNNABLE;
 	_processes[pid].pagedir = pagedir;
+	_processes[pid].entry   = entry;
 	_processes[pid].read_pipe = pipe_new();
 	_processes[pid].write_pipe = pipe_new();
 
-	//asm_jump_usermode(entry, VMM_USER_STACK_END, (u64) NULL, 0);
 	return pid;
 }
 

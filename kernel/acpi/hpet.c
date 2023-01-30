@@ -17,31 +17,25 @@
 #define NS_PER_SEC (1000000000UL)
 #define FS_PER_NS (1000000UL)
 
-struct hpet {
-	u64 capabilities;
-	u64 reserved1;
-	u64 config;
-	u64 reserved3;
-	u64 status;
-	u64 reserved4[25];
-	u64 counter;
-	u64 reserved5;
-	volatile struct {
-		u64 config;
-		u64 comparator;
-		u64 fsb;
-		u64 reserved0;
-	} timers[];
-};
+#define HPET_CAPABILITIES (0x00)
+#define HPET_CONFIG       (0x10)
+#define HPET_STATUS       (0x20)
+#define HPET_COUNTER      (0xF0)
+#define HPET_TIMERN_CONFIG(n)     (0x100 + 0x20 * n)
+#define HPET_TIMERN_COMPARATOR(n) (0x108 + 0x20 * n)
+#define HPET_TIMERN_FSB(n)        (0x110 + 0x20 * n)
 
-static struct hpet *hpet = NULL;
+static void *hpet = NULL;
 static u64 precision_ns;
 
 static u64 timern_timeout[2];
-static bool timern_periodic_capable[2];
 
-static u64 read_bitfield(u64 value, u64 start, u64 length) {
-	return (value >> start) & ((u64) 0xffffffffffffffff >> (64 - length));
+static u64 read_word(u64 offset) {
+	return *(volatile u64*) (hpet + offset);
+}
+
+static void write_word(u64 offset, u64 word) {
+	*(volatile u64*) (hpet + offset) = word;
 }
 
 static u64 time_to_comparator(u64 time, u64 unit) {
@@ -54,18 +48,15 @@ static u64 time_to_comparator(u64 time, u64 unit) {
 	} else {
 		time *= 1000000UL;
 	}
-	return time / read_bitfield(hpet->capabilities, 32, 32);
+	return time / (read_word(HPET_CAPABILITIES) >> 32);
 }
 
 static void init_timers(void) {
 	for (int n = 0; n < 2; n++) {
-		timern_periodic_capable[n] = (hpet->timers[n].config & TIMERN_PERIODIC_CAPABLE) != 0;
-		if (timern_periodic_capable[n]) {
-			hpet->timers[n].config |= TIMERN_PERIODIC;
-		}
-
-		hpet->timers[n].comparator = timern_timeout[n];
-		hpet->timers[n].config |= TIMERN_ENABLE;
+		write_word(HPET_TIMERN_COMPARATOR(n), timern_timeout[n]);
+		u64 config = read_word(HPET_TIMERN_CONFIG(n));
+		config |= TIMERN_ENABLE;
+		write_word(HPET_TIMERN_CONFIG(n), config);
 	}
 }
 
@@ -77,21 +68,22 @@ void hpet_register(u64 addr) {
 
 	init_timers();
 
-	hpet->counter = 0;
-	hpet->config |= HPET_EN | HPET_LEGACY_EN;
+	write_word(HPET_COUNTER, 0);
+	u64 config = read_word(HPET_CONFIG);
+	config |= HPET_EN | HPET_LEGACY_EN;
+	write_word(HPET_CONFIG, config);
 
-	precision_ns = read_bitfield(hpet->capabilities, 32, 32) / FS_PER_NS;
+	precision_ns = (read_word(HPET_CAPABILITIES) >> 32) / FS_PER_NS;
 }
 
 void hpet_next_timeout(int timern) {
 	if (timern < 0 || timern > 1) {
 		return;
 	}
-	if (timern_periodic_capable[timern]) {
-		return;
-	}
 
-	hpet->timers[timern].comparator += timern_timeout[timern];
+	u64 comparator = read_word(HPET_TIMERN_COMPARATOR(timern));
+	comparator += timern_timeout[timern];
+	write_word(HPET_TIMERN_COMPARATOR(timern), comparator);
 }
 
 u64 hpet_precision_ns(void) {
@@ -99,8 +91,8 @@ u64 hpet_precision_ns(void) {
 }
 
 u64 hpet_current_ns(void) {
-	u64 next_ns = hpet->timers[HPET_TIMER_RTC].comparator / FS_PER_NS;
-	u64 current_ns = hpet->counter / FS_PER_NS;
+	u64 next_ns = read_word(HPET_TIMERN_COMPARATOR(HPET_TIMER_RTC)) * precision_ns;
+	u64 current_ns = read_word(HPET_COUNTER) * precision_ns;
 	u64 ns_until_next_second = next_ns - current_ns;
 	u64 time_since_last_sec = NS_PER_SEC - ns_until_next_second;
 	return time_since_last_sec;

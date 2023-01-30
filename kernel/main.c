@@ -19,6 +19,7 @@
 #include <driver/util.h>
 
 #include <process/process.h>
+#include <process/scheduler.h>
 
 extern driver_init_t __start_driver_init[];
 extern driver_init_t __stop_driver_init[];
@@ -49,6 +50,7 @@ void kmain(struct boot_info *boot_info) {
 
 	process_init(boot_info);
 	process_create("/modules/init.elf");
+	scheduler_enable(true);
 
 	kloop();
 }
@@ -64,7 +66,18 @@ void kloop(void) {
 		int len = dev->read(dev, (u8*) buf, 80, 0);
 		boot_info->fb_print(buf, len);
 		boot_info->fb_print("\r", 1);
-		printf("%s\r", buf);
+		printf("%s\n", buf);
 	}
+}
+
+void kprintf(const char *fmt, ...) {
+	u64 secs = time_since_boot();
+	u64 ns = secs == 0 ? 0 : time_current_ns();
+	printf("[%.5u.%0.6u] ", secs, ns / 1000);
+
+	va_list args;
+	va_start(args, fmt);
+	vprintf(fmt, args);
+	va_end(args);
 }
 

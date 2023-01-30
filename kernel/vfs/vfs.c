@@ -98,9 +98,9 @@ struct io_device *vfs_get(int fd) {
 }
 
 void vfs_print_entries(void) {
-	printf("vfs entries:\n");
+	kprintf("vfs entries:\n");
 	for (u64 i = 0; i < _vfs_size; i++) {
-		printf("    %s\n", _vfs[i].name);
+		kprintf("    %s\n", _vfs[i].name);
 	}
 }
 

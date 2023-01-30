@@ -11,6 +11,7 @@
 struct process {
 	u64 status;
 	u64 *pagedir;
+	u64 entry;
 	struct io_device read_pipe;
 	struct io_device write_pipe;
 	struct io_device *fds[8];

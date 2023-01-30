@@ -304,6 +304,7 @@ u64 snprintf(char *buf, u64 maxlen, const char *fmt, ...) {
 	va_start(args, fmt);
 	u64 len = vsnprintf(buf, maxlen, fmt, args);
 	va_end(args);
+	buf[len] = '\0';
 	return len;
 }
 

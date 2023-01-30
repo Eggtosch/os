@@ -81,7 +81,7 @@ __unused static void print_sdt_entries(struct acpi_rsdt *rsdt) {
 	int entries = (rsdt->header.len - sizeof(rsdt->header)) / 4;
 	for (int i = 0; i < entries; i++) {
 		struct acpi_sdt_header *h = (struct acpi_sdt_header*) (u64) rsdt->sdts[i];
-		printf("%.4s\n", h->signature);
+		kprintf("%.4s\n", h->signature);
 	}
 }
 
