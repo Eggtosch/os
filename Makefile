@@ -22,7 +22,7 @@ LIMINE_DIR := limine
 CROSS_COMPILER := cross-compiler
 
 .PHONY: build
-build: | $(LIMINE_DIR) $(CROSS_COMPILER) $(BINDIR) libc user
+build: | $(LIMINE_DIR) $(CROSS_COMPILER) $(BINDIR) $(LOG_DIR) libc user
 	@# create needed directories
 	mkdir -p $(FS_BOOT_DIR) $(FS_MODULES_DIR) $(LOG_DIR)
 	@# make kernel
@@ -42,6 +42,9 @@ build: | $(LIMINE_DIR) $(CROSS_COMPILER) $(BINDIR) libc user
 
 $(BINDIR):
 	mkdir -p $(BINDIR)
+
+$(LOG_DIR):
+	mkdir -p $(LOG_DIR)
 
 $(CROSS_COMPILER):
 	./scripts/build-cross-compiler.sh
@@ -93,4 +96,5 @@ clean:
 	rm -rf bin
 	rm -f $(ISO)
 	rm -rf $(FS_DIR)
+	rm -rf $(LOG_DIR)
 
