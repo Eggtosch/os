@@ -103,7 +103,7 @@ i64 framebuffer_write(u16 x, u16 y, u16 width, u16 height, u32 *buffer) {
 	}
 
 	u32 *dst = _fb_info.fb_addr + y * _fb_info.fb_pitch + x;
-	u32 *src = (u32*) (buffer + 8);
+	u32 *src = (u32*) buffer;
 
 	for (u64 _y = 0; _y < height; _y++) {
 		for (u64 _x = 0; _x < width; _x++) {
