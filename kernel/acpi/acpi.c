@@ -6,6 +6,7 @@
 #include <string.h>
 #include <panic.h>
 #include <driver/util.h>
+#include <memory/pmm.h>
 
 static struct acpi_fadt *acpi_fadt;
 
@@ -59,7 +60,7 @@ static struct acpi_sdt_header *rsdt_find(struct acpi_rsdt *rsdt, const char *sig
 
 	int entries = (rsdt->header.len - sizeof(rsdt->header)) / 4;
 	for (int i = 0; i < entries; i++) {
-		struct acpi_sdt_header *h = (struct acpi_sdt_header*) (u64) rsdt->sdts[i];
+		struct acpi_sdt_header *h = (struct acpi_sdt_header*) pmm_to_virt(rsdt->sdts[i]);
 		if (memcmp((void*) h->signature, (void*) signature, 4) == 0) {
 			header = h;
 			break;
@@ -98,7 +99,7 @@ void acpi_init(struct boot_info *boot_info) {
 		panic("ACPI checksum invalid\n");
 	}
 
-	struct acpi_rsdt *rsdt = (struct acpi_rsdt*) (u64) rsdp->rsdt_addr;
+	struct acpi_rsdt *rsdt = (struct acpi_rsdt*) pmm_to_virt(rsdp->rsdt_addr);
 
 	parse_fadt(rsdt);
 	parse_hpet(rsdt);

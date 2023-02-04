@@ -8,39 +8,14 @@
 
 
 static u64 *_kernel_page_dir;
-static u64 _identity_map_index;
 static u64 _higher_half_map_index;
 static u64 _kernel_map_index;
 
 static void save_kernel_pagedir_entries(void) {
-	_higher_half_map_index = 512;
-	_kernel_map_index      = 512;
-	_identity_map_index    = 512;
-	u64 i = 0;
-	for (; i < 512; i++) {
-		if (_kernel_page_dir[i] & 1) {
-			_identity_map_index = i;
-			i++;
-			break;
-		}
-	}
-	for (; i < 512; i++) {
-		if (_kernel_page_dir[i] & 1) {
-			_higher_half_map_index = i;
-			i++;
-			break;
-		}
-	}
-	for (; i < 512; i++) {
-		if (_kernel_page_dir[i] & 1) {
-			_kernel_map_index = i;
-			i++;
-			break;
-		}
-	}
-	if (_higher_half_map_index == 512 || _kernel_map_index == 512 || _identity_map_index == 512) {
-		panic("could not determine higher_half identity map or kernel map or _identity_map_index");
-	}
+	u64 hhdm_start = 0xffff800000000000UL;
+	u64 kmap_start = 0xffffffff80000000UL;
+	_higher_half_map_index = (hhdm_start >> 39) & 0x1ff;
+	_kernel_map_index = (kmap_start >> 39) & 0x1ff;
 }
 
 static u64 *next_pd_level(u64 *pagedirx, u64 index) {
@@ -56,6 +31,7 @@ static u64 get_num_of_pages(u64 bytes) {
 }
 
 static void destroy_pd1(u64 *pd1) {
+	pd1 = (u64*) pmm_to_virt((u64) pd1);
 	for (u64 i1 = 0; i1 < 512; i1++) {
 		if (pd1[i1] & 1) {
 			u64 addr = entry_to_address((u64*) pd1[i1]);
@@ -66,6 +42,7 @@ static void destroy_pd1(u64 *pd1) {
 }
 
 static void destroy_pd2(u64 *pd2) {
+	pd2 = (u64*) pmm_to_virt((u64) pd2);
 	for (u64 i2 = 0; i2 < 512; i2++) {
 		if (pd2[i2] & 1) {
 			destroy_pd1(next_pd_level(pd2, i2));
@@ -76,6 +53,7 @@ static void destroy_pd2(u64 *pd2) {
 }
 
 static void destroy_pd3(u64 *pd3) {
+	pd3 = (u64*) pmm_to_virt((u64) pd3);
 	for (u64 i3 = 0; i3 < 512; i3++) {
 		if (pd3[i3] & 1) {
 			destroy_pd2(next_pd_level(pd3, i3));
@@ -85,10 +63,10 @@ static void destroy_pd3(u64 *pd3) {
 }
 
 static void destroy_pd4(u64 *pd4) {
+	pd4 = (u64*) pmm_to_virt((u64) pd4);
 	for (u64 i4 = 0; i4 < 512; i4++) {
 		if (i4 == _kernel_map_index ||
-			i4 == _higher_half_map_index ||
-			i4 == _identity_map_index) {
+			i4 == _higher_half_map_index) {
 			continue;
 		}
 		if (pd4[i4] & 1) {
@@ -158,7 +136,6 @@ void vmm_set_pagedir(u64 *pd) {
 
 u64 *vmm_pagedir_create(void) {
 	u64 *pagedir = (u64*) pmm_alloc(1);
-	pagedir[_identity_map_index]    = _kernel_page_dir[_identity_map_index];
 	pagedir[_higher_half_map_index] = _kernel_page_dir[_higher_half_map_index];
 	pagedir[_kernel_map_index]      = _kernel_page_dir[_kernel_map_index];
 	return pagedir;
@@ -168,6 +145,11 @@ void vmm_pagedir_destroy(u64 *pagedir) {
 	if (pagedir == NULL) {
 		return;
 	}
+
+	if (pagedir == _kernel_page_dir) {
+		panic("Trying to destroy the kernel page dir!");
+	}
+
 	destroy_pd4(pagedir);
 }
 

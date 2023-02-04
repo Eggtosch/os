@@ -1,7 +1,8 @@
-#include "memory/vmm.h"
 #include <process/elf.h>
 #include <string.h>
 #include <io/stdio.h>
+#include <memory/vmm.h>
+#include <memory/pmm.h>
 
 #define PT_LOAD (1)
 
@@ -148,7 +149,8 @@ int elf_load(u8 *elf, u64 **pagedir, u64 *entry) {
 		if (phdr->vaddr == 0) {
 			continue;
 		}
-		u8 *dest = (u8*) vmm_vaddr_to_phys(pd, phdr->vaddr);
+
+		u8 *dest = (u8*) pmm_to_virt(vmm_vaddr_to_phys(pd, phdr->vaddr));
 		u8 *src = (u8*) elf + phdr->offset;
 		u64 size = phdr->filesize;
 		memcpy(dest, src, size);

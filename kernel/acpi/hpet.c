@@ -2,6 +2,7 @@
 #include <io/stdio.h>
 #include <boot/boot_info.h>
 #include <string.h>
+#include <memory/pmm.h>
 
 #define HPET_EN					(1 << 0)
 #define HPET_LEGACY_EN			(1 << 1)
@@ -63,7 +64,7 @@ static void init_timers(void) {
 void hpet_register(u64 addr) {
 	kprintf("register time source: hpet\n");
 
-	hpet = (struct hpet*) addr;
+	hpet = (struct hpet*) pmm_to_virt(addr);
 
 	timern_timeout[0] = time_to_comparator(250, MILLISECONDS);
 	timern_timeout[1] = time_to_comparator(1, SECONDS);

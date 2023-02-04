@@ -68,7 +68,7 @@ void kloop(void) {
 		int len = dev->read(dev, (u8*) buf, 80, 0);
 		boot_info->fb_print(buf, len);
 		boot_info->fb_print("\r", 1);
-		printf("%s\n", buf);
+		printf("%s\r", buf);
 	}
 }
 
