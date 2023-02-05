@@ -134,6 +134,10 @@ void vmm_set_pagedir(u64 *pd) {
 	asm volatile("mov %0, %%cr3" :: "r"(pmm_to_phys((u64) pd)) : "memory");
 }
 
+bool vmm_kernel_pagedir_active(void) {
+	return vmm_get_pagedir() == _kernel_page_dir;
+}
+
 u64 *vmm_pagedir_create(void) {
 	u64 *pagedir = (u64*) pmm_alloc(1);
 	pagedir[_higher_half_map_index] = _kernel_page_dir[_higher_half_map_index];

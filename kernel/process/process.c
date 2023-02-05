@@ -70,7 +70,6 @@ static pid_t load_to_memory(const char *name, u64 **pagedir, u64 *entry) {
 	}
 
 	vmm_map(*pagedir, VMM_USER_STACK_END - VMM_USER_STACK_LEN, VMM_USER_STACK_LEN);
-	vmm_set_pagedir(*pagedir);
 
 	return pid;
 }

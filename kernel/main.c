@@ -21,6 +21,8 @@
 #include <process/process.h>
 #include <process/scheduler.h>
 
+#include <panic.h>
+
 extern driver_init_t __start_driver_init[];
 extern driver_init_t __stop_driver_init[];
 
@@ -58,6 +60,11 @@ void kmain(struct boot_info *boot_info) {
 }
 
 void kloop(void) {
+	if (!vmm_kernel_pagedir_active()) {
+		vmm_set_pagedir(NULL);
+		panic("kloop executed when other process was running!");
+	}
+
 	struct boot_info *boot_info = boot_info_get();
 	char buf[80];
 	int fd = vfs_open("/dev/date");

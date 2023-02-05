@@ -1,6 +1,7 @@
 #include <panic.h>
 #include <io/stdio.h>
 #include <boot/boot_info.h>
+#include <memory/vmm.h>
 
 static u64 panic_write_fb(struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	struct boot_info *boot_info = dev->userdata;
@@ -9,6 +10,8 @@ static u64 panic_write_fb(struct io_device *dev, u8 *buf, u64 buflen, __unused u
 }
 
 __attribute__((noreturn)) void _panic(const char *file, const char *function, int line, const char *fmt, ...) {
+	vmm_set_pagedir(NULL);
+
 	va_list args, fb_args;
 	va_start(args, fmt);
 	va_copy(fb_args, args);

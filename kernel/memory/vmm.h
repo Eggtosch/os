@@ -11,6 +11,8 @@ void vmm_init(void);
 u64 *vmm_get_pagedir(void);
 void vmm_set_pagedir(u64 *pagedir);
 
+bool vmm_kernel_pagedir_active(void);
+
 u64 *vmm_pagedir_create(void);
 void vmm_pagedir_destroy(u64 *pagedir);
 
