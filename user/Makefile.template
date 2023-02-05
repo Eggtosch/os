@@ -4,7 +4,7 @@ LD      := ../../cross-compiler/bin/x86_64-elf-ld
 CFLAGS =									\
 	-Isrc/ -I../../libc/include/ -nostdinc	\
 	-Wall -Wextra							\
-	-O2 -pipe -mcmodel=large -fno-pic		\
+	-O2 -pipe -fno-pic						\
 	-ffreestanding -fno-stack-protector		\
 	-mno-80387 -mno-mmx -mno-3dnow -mno-sse	\
 	-mno-sse2								\

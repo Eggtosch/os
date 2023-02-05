@@ -3,7 +3,7 @@
 #include <common.h>
 
 
-#define VMM_USER_CODE      (0x500000000000)
+#define VMM_USER_CODE      (0x400000)
 #define VMM_USER_STACK_END (0x800000000000)
 #define VMM_USER_STACK_LEN (0x10000)
 
