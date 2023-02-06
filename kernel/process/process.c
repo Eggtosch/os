@@ -69,13 +69,13 @@ static pid_t load_to_memory(const char *name, u64 **pagedir, u64 *entry) {
 		panic("Could not load %s: %s\n", name, elf_error_str(err));
 	}
 
-	vmm_map(*pagedir, VMM_USER_STACK_END - VMM_USER_STACK_LEN, VMM_USER_STACK_LEN);
+	vmm_map(*pagedir, (void*) (VMM_USER_STACK_END - VMM_USER_STACK_LEN), VMM_USER_STACK_LEN);
 
 	return pid;
 }
 
 void process_start_init(const char *name) {
-	u64 *pagedir;
+	pagedir_t *pagedir;
 	u64 entry;
 	pid_t pid = load_to_memory(name, &pagedir, &entry);
 	if (pid != 0) {
@@ -88,7 +88,7 @@ void process_start_init(const char *name) {
 }
 
 pid_t process_create(const char *name) {
-	u64 *pagedir;
+	pagedir_t *pagedir;
 	u64 entry;
 
 	if (_processes[0].status == PROC_NONE) {

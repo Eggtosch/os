@@ -21,12 +21,12 @@ static int first_free_pipe(void) {
 	if (_pipes_size >= _pipes_cap) {
 		if (_pipes_cap == 0) {
 			_pipes_cap = ENTRIES_PER_PAGE;
-			_pipes = (struct pipe*) pmm_alloc(1);
+			_pipes = pmm_alloc(1);
 		} else {
 			_pipes_cap *= 2;
-			struct pipe *newpipes = (struct pipe*) pmm_alloc(_pipes_cap * ENTRIES_PER_PAGE);
+			struct pipe *newpipes = pmm_alloc(_pipes_cap * ENTRIES_PER_PAGE);
 			memcpy(newpipes, _pipes, _pipes_size * sizeof(struct pipe));
-			pmm_free((u64) _pipes, _pipes_cap / ENTRIES_PER_PAGE);
+			pmm_free(_pipes, _pipes_cap / ENTRIES_PER_PAGE);
 			_pipes = newpipes;
 		}
 	}
@@ -71,7 +71,7 @@ static u64 pipe_write(struct io_device *dev, u8 *buf, u64 bufsize, __unused u64 
 
 static void pipe_close(struct io_device *dev) {
 	int index = (int)(u64) dev->userdata;
-	pmm_free((u64) _pipes[index].buffer, 1);
+	pmm_free(_pipes[index].buffer, 1);
 	_pipes[index].position = 0;
 	_pipes[index].size = 0;
 	_pipes[index].buffer = NULL;
@@ -81,7 +81,7 @@ struct io_device pipe_new(void) {
 	int index = first_free_pipe();
 	_pipes[index].position = 0;
 	_pipes[index].size = 0;
-	_pipes[index].buffer = (u8*) pmm_alloc(1);
+	_pipes[index].buffer = pmm_alloc(1);
 
 	struct io_device dev;
 	dev.read = pipe_read;

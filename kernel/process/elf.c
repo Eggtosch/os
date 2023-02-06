@@ -51,7 +51,7 @@ struct elf64_phdr {
     u32 type;
     u32 flags;
     u64 offset;
-    u64 vaddr;
+    void *vaddr;
     u64 paddr;
     u64 filesize;
     u64 memsize;
@@ -116,11 +116,11 @@ int elf_validate(u8 *elf) {
 	return ELF_OK;
 }
 
-int elf_load(u8 *elf, u64 **pagedir, u64 *entry) {
+int elf_load(u8 *elf, pagedir_t **pagedir, u64 *entry) {
 	struct elf_header *header = (struct elf_header*) elf;
 
-	u64 lowest_vaddr = 0xffffffffffffffff;
-	u64 highest_vaddr = 0;
+	void *lowest_vaddr = (void*) 0xffffffffffffffffUL;
+	void *highest_vaddr = (void*) 0UL;
 	for (int i = 0; i < header->phdr_count; i++) {
 		struct elf64_phdr *phdr = (void*) elf + (header->phdr_offset + i * header->phdr_size);
 		if (phdr->type != PT_LOAD) {
@@ -138,7 +138,7 @@ int elf_load(u8 *elf, u64 **pagedir, u64 *entry) {
 	}
 
 	u64 size = ALIGNUP_PAGE(highest_vaddr - lowest_vaddr);
-	u64 *pd = vmm_pagedir_create();
+	pagedir_t *pd = vmm_pagedir_create();
 	vmm_map(pd, lowest_vaddr, size);
 
 	for (int i = 0; i < header->phdr_count; i++) {
@@ -150,7 +150,7 @@ int elf_load(u8 *elf, u64 **pagedir, u64 *entry) {
 			continue;
 		}
 
-		u8 *dest = (u8*) pmm_to_virt(vmm_vaddr_to_phys(pd, phdr->vaddr));
+		u8 *dest = pmm_to_virt(vmm_vaddr_to_phys(pd, phdr->vaddr));
 		u8 *src = (u8*) elf + phdr->offset;
 		u64 size = phdr->filesize;
 		memcpy(dest, src, size);

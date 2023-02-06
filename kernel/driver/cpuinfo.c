@@ -41,16 +41,16 @@ static struct driver_file driver_files[] = {
 };
 
 static void resize(char **s, u64 *n_pages) {
-	char *new = (void*) pmm_alloc(*n_pages + 1);
+	char *new = pmm_alloc(*n_pages + 1);
 	memcpy(new, *s, *n_pages * PAGE_SIZE);
-	pmm_free((u64) *s, *n_pages);
+	pmm_free(*s, *n_pages);
 	*s = new;
 	(*n_pages)++;
 }
 
 static void cpuinfo_init(__unused struct boot_info *boot_info) {
 	u64 pages = 1;
-	char *s = (void*) pmm_alloc(pages);
+	char *s = pmm_alloc(pages);
 	u64 index = 0;
 	for (u64 flag = 0; flag < ARRAY_LEN(cpu_flag_names); flag++) {
 		if (!cpu_has_flag(flag)) {

@@ -2,6 +2,7 @@
 
 #include <boot/boot_info.h>
 #include <vfs/io_device.h>
+#include <memory/vmm.h>
 
 #define PROC_MAX_FDS  (8)
 #define PROC_NONE     (0)
@@ -10,7 +11,7 @@
 
 struct process {
 	u64 status;
-	u64 *pagedir;
+	pagedir_t *pagedir;
 	u64 entry;
 	struct io_device read_pipe;
 	struct io_device write_pipe;

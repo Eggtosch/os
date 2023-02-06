@@ -5,6 +5,8 @@
 #include <string.h>
 #include <panic.h>
 
+#define VIRTUAL_ADDR_OFFSET (0xffff800000000000UL)
+
 struct mem_bitmap {
 	u64  bitmap_size;
 	u64  mem_size;
@@ -130,7 +132,7 @@ void pmm_init(struct boot_info *boot_info) {
 	for (u64 i = 0; i < _mem_info->mem_entries; i++) {
 		struct mem_entry *entry = _mem_info->mem_map[i];
 		if (entry->mem_type == MEM_USABLE) {
-			pmm_free((u64) entry->mem_base, entry->mem_length / PAGE_SIZE);
+			pmm_free(entry->mem_base, entry->mem_length / PAGE_SIZE);
 		}
 	}
 
@@ -147,7 +149,7 @@ void pmm_init(struct boot_info *boot_info) {
 	kprintf("total system ram: %u (%s) bytes\n", total_bytes, total_bytes_str);
 }
 
-u64 pmm_alloc(u64 page_count) {
+void *pmm_alloc(u64 page_count) {
 	if (page_count == 0) {
 		return 0;
 	}
@@ -167,16 +169,16 @@ u64 pmm_alloc(u64 page_count) {
 			if (start_page == _bitmap.mem_lowest_free_page) {
 				cache_lowest_free_page_from(i);
 			}
-			u64 ptr = pmm_to_virt(start_page * PAGE_SIZE);
-			memset((void*) ptr, 0, page_count * PAGE_SIZE);
+			void *ptr = pmm_to_virt(start_page * PAGE_SIZE);
+			memset(ptr, 0, page_count * PAGE_SIZE);
 			return ptr;
 		}
 	}
 	panic("out of memory: requested %d pages", page_count);
 }
 
-void pmm_free(u64 ptr, u64 page_count) {
-	u64 index = pmm_to_phys(ptr) / PAGE_SIZE;
+void pmm_free(void *ptr, u64 page_count) {
+	u64 index = (u64) pmm_to_phys(ptr) / PAGE_SIZE;
 	for (u64 i = 0; i < page_count; i++) {
 		mem_bitmap_unset(index + i);
 	}
@@ -211,17 +213,19 @@ u64 pmm_get_free_bytes(void) {
 	return bytes_free;
 }
 
-u64 pmm_to_phys(u64 vaddr) {
-	if (vaddr < VIRTUAL_ADDR_OFFSET) {
-		return vaddr;
-	}
-	return vaddr - VIRTUAL_ADDR_OFFSET;
-}
-
-u64 pmm_to_virt(u64 paddr) {
-	if (paddr >= VIRTUAL_ADDR_OFFSET) {
+u64 pmm_to_phys(void *vaddr) {
+	u64 paddr = (u64) vaddr;
+	if (paddr < VIRTUAL_ADDR_OFFSET) {
 		return paddr;
 	}
-	return paddr + VIRTUAL_ADDR_OFFSET;
+	return paddr - VIRTUAL_ADDR_OFFSET;
+}
+
+void *pmm_to_virt(u64 paddr) {
+	void *vaddr = (void*) paddr;
+	if (paddr >= VIRTUAL_ADDR_OFFSET) {
+		return vaddr;
+	}
+	return vaddr + VIRTUAL_ADDR_OFFSET;
 }
 

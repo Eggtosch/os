@@ -23,7 +23,7 @@ static u64 _vfs_cap;
 
 
 void vfs_init(void) {
-	_vfs = (struct vfs_entry*) pmm_alloc(1);
+	_vfs = pmm_alloc(1);
 	_vfs_size = 0;
 	_vfs_cap  = ENTRIES_PER_PAGE;
 
@@ -36,10 +36,11 @@ int vfs_mount(const char *pathname, struct io_device *stream) {
 	}
 
 	if (_vfs_size >= _vfs_cap) {
-		struct vfs_entry *new = (struct vfs_entry*) pmm_alloc(_vfs_cap * 2 / ENTRIES_PER_PAGE);
+		struct vfs_entry *new = pmm_alloc(_vfs_cap * 2 / ENTRIES_PER_PAGE);
 		for (u64 i = 0; i < _vfs_cap; i++) {
 			new[i] = _vfs[i];
 		}
+		pmm_free(_vfs, _vfs_cap * ENTRIES_PER_PAGE);
 		_vfs_cap *= 2;
 		_vfs = new;
 	}

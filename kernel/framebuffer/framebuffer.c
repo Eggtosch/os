@@ -40,7 +40,7 @@ static u64 enable_mtrr(u32 *addr, u64 pitch, u64 height) {
 		return 1;
 
 	u8 max_phys_addr = eax & 0xff;
-	u64 base = pmm_to_phys((u64) addr);
+	u64 base = pmm_to_phys(addr);
 	u64 size = alignup_power2(pitch * height, PAGE_SIZE);
 	u64 mask = (((u64) 1 << max_phys_addr) - 1) & ~(size - 1);
 
