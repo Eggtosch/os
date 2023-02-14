@@ -82,11 +82,16 @@ void kloop(void) {
 void kprintf(const char *fmt, ...) {
 	i64 secs = time_since_boot();
 	u64 ns = time_current_ns();
-	printf("[%.5u.%0.6u] ", secs == -1 ? 0 : secs, ns / 1000);
+
+	struct boot_info *boot_info = boot_info_get();
+	char buf[200];
+	int len = snprintf(buf, sizeof(buf), "[%.5u.%0.6u] ", secs == -1 ? 0 : secs, ns / 1000);
+	boot_info->fb_print(buf, len);
 
 	va_list args;
 	va_start(args, fmt);
-	vprintf(fmt, args);
+	len = vsnprintf(buf, sizeof(buf), fmt, args);
+	boot_info->fb_print(buf, len);
 	va_end(args);
 }
 
