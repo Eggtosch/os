@@ -1,7 +1,5 @@
 set -e
 
-sudo apt install build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo
-
 if [ ! -f binutils-2.39.tar.xz ]; then
 	wget https://ftp.gnu.org/gnu/binutils/binutils-2.39.tar.xz
 fi
