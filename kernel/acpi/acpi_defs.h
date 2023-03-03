@@ -137,3 +137,63 @@ struct acpi_hpet {
 	u8 page_protection;
 } __attribute__((packed));
 
+struct acpi_madt {
+	struct acpi_sdt_header header;
+	u32 lapic_addr;
+	u32 flags;
+} __attribute__((packed));
+
+enum acpi_madt_entry_type {
+	ACPI_MADT_TYPE_LAPIC            = 0,
+	ACPI_MADT_TYPE_IOAPIC           = 1,
+	ACPI_MADT_TYPE_INT_SRC          = 2,
+	ACPI_MADT_TYPE_NMI_INT_SRC      = 3,
+	ACPI_MADT_LAPIC_NMI             = 4,
+	ACPI_MADT_TYPE_LAPIC_OVERRIDE   = 5,
+	ACPI_MADT_TYPE_IOSAPIC          = 6,
+	ACPI_MADT_TYPE_LSAPIC           = 7,
+	ACPI_MADT_TYPE_PLATFORM_INT_SRC = 8,
+	ACPI_MADT_TYPE_LX2APIC          = 9,
+};
+
+struct acpi_madt_entry {
+	u8 type;
+	u8 len;
+} __attribute__((packed));
+
+struct acpi_madt_lapic {
+	struct acpi_madt_entry header;
+	u8 processor_uid;
+	u8 apic_id;
+	u32 flags;
+} __attribute__((packed));
+
+struct acpi_madt_ioapic {
+	struct acpi_madt_entry header;
+	u8 ioapic_id;
+	u8 reserved;
+	u32 addr;
+	u32 g_int_base;
+} __attribute__((packed));
+
+struct acpi_madt_int_src {
+	struct acpi_madt_entry header;
+	u8 bus;
+	u8 source;
+	u32 g_sys_int;
+	u16 flags;
+} __attribute__((packed));
+
+struct acpi_madt_nmi_int_src {
+	struct acpi_madt_entry header;
+	u16 flags;
+	u32 g_sys_int;
+} __attribute__((packed));
+
+struct acpi_madt_apic_nmi {
+	struct acpi_madt_entry header;
+	u8 processor_uid;
+	u16 flags;
+	u8 lapic_int;
+} __attribute__((packed));
+

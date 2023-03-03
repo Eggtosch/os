@@ -11,7 +11,7 @@ INIT_PROGRAM   := bin/init.elf
 BINDIR    := bin
 
 ISO       := bin/os.iso
-QEMU_UEFI := /usr/share/ovmf/OVMF.fd
+QEMU_UEFI := /usr/share/ovmf/x64/OVMF.fd
 
 LOG_DIR     := log
 LOG_XORRISO := $(LOG_DIR)/xorriso.log

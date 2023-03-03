@@ -1,5 +1,4 @@
 #include <interrupts/idt.h>
-#include <interrupts/pic.h>
 #include <interrupts/interrupts.h>
 
 struct idt_descriptor {
@@ -48,9 +47,6 @@ void idt_init(void) {
 		idt_create_descriptor(i, 0x8e);
 	}
 
-	pic_remap();
-	interrupt_enable(INT_SLAVE_IRQS, true);
-
 	for (u16 i = 32; i < 256; i++) {
 		idt_create_descriptor((u8) i, 0x8e);
 	}
@@ -62,4 +58,3 @@ void idt_init(void) {
 
 	kprintf("initialized idt\n");
 }
-

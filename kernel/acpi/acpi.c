@@ -1,6 +1,8 @@
 #include <acpi/acpi.h>
 #include <acpi/acpi_defs.h>
 #include <acpi/hpet.h>
+#include <interrupts/ioapic.h>
+#include <interrupts/lapic.h>
 #include <io/stdio.h>
 #include <io/io.h>
 #include <string.h>
@@ -88,6 +90,7 @@ __unused static void print_sdt_entries(struct acpi_rsdt *rsdt) {
 
 static void parse_fadt(struct acpi_rsdt *rsdt);
 static void parse_hpet(struct acpi_rsdt *rsdt);
+static void parse_madt(struct acpi_rsdt *rsdt);
 
 void acpi_init(struct boot_info *boot_info) {
 	struct acpi_rsdp *rsdp = (struct acpi_rsdp*) boot_info->rsdp;
@@ -103,6 +106,7 @@ void acpi_init(struct boot_info *boot_info) {
 
 	parse_fadt(rsdt);
 	parse_hpet(rsdt);
+	parse_madt(rsdt);
 }
 
 static void parse_fadt(struct acpi_rsdt *rsdt) {
@@ -124,3 +128,39 @@ static void parse_hpet(struct acpi_rsdt *rsdt) {
 	hpet_register(hpet->base_address.addr);
 }
 
+static void parse_madt(struct acpi_rsdt *rsdt) {
+	struct acpi_madt *madt = (struct acpi_madt*) rsdt_find(rsdt, "APIC");
+	if (madt == NULL) {
+		panic("ACPI madt table not found!\n");
+	}
+
+	kprintf("found acpi table: APIC\n");
+
+	struct acpi_madt_entry *entry = (void*) madt + sizeof(struct acpi_madt);
+	while ((u64) entry < (u64) madt + madt->header.len) {
+		if (entry->type == ACPI_MADT_TYPE_LAPIC) {
+			struct acpi_madt_lapic *lapic = (void*) entry;
+			apic_register(lapic->apic_id);
+			kprintf("local apic: %d/%d/%#x\n", lapic->processor_uid, lapic->apic_id, lapic->flags);
+		} else if (entry->type == ACPI_MADT_TYPE_IOAPIC) {
+			struct acpi_madt_ioapic *ioapic = (void*) entry;
+			kprintf("found io apic: id=%d\n", ioapic->ioapic_id);
+			ioapic_register(ioapic->ioapic_id, ioapic->addr, ioapic->g_int_base);
+		}
+
+		entry = (void*) entry + entry->len;
+	}
+
+	entry = (void*) madt + sizeof(struct acpi_madt);
+	while ((u64) entry < (u64) madt + madt->header.len) {
+		if (entry->type == ACPI_MADT_TYPE_INT_SRC) {
+			struct acpi_madt_int_src *override = (void*) entry;
+			if (override->source != override->g_sys_int) {
+				kprintf("remapping irq %d to irq %d\n", override->source, override->g_sys_int);
+			}
+			ioapic_set_irq_override(override->source, override->g_sys_int, override->flags);
+		}
+
+		entry = (void*) entry + entry->len;
+	}
+}

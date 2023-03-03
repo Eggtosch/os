@@ -1,6 +1,7 @@
 #include <interrupts/interrupts.h>
 #include <interrupts/idt.h>
-#include <interrupts/pic.h>
+#include <interrupts/lapic.h>
+#include <interrupts/ioapic.h>
 
 #include <panic.h>
 
@@ -43,10 +44,7 @@ static const char *exception_names[] = {
 static isr_func isr_functions[256];
 
 
-void interrupt_register(u32 isr_num, isr_func f, u32 int_type) {
-	if (isr_num >= 255) {
-		return;
-	}
+void interrupt_register(u8 isr_num, isr_func f, u32 int_type) {
 	isr_functions[isr_num] = f;
 	if (int_type == INT_USER) {
 		idt_create_descriptor(isr_num, 0xee);
@@ -75,16 +73,11 @@ u64 interrupt_handler(u64 rsp) {
 		isr_functions[isr_num](cpu_state);
 	}
 
-	pic_signal_eoi(isr_num);
+	apic_signal_eoi();
 
 	return rsp;
 }
 
-void interrupt_enable(u32 isr_num, bool enable) {
-	if (enable) {
-		pic_clear_mask(isr_num);
-	} else {
-		pic_set_mask(isr_num);
-	}
+void interrupt_enable(u8 isr_num, bool enable) {
+	ioapic_set_mask(isr_num, enable ? 0 : 1);
 }
-

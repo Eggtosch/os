@@ -2,7 +2,6 @@
 
 #include <common.h>
 
-
 struct cpu_state {
 	u64 r15;
 	u64 r14;
@@ -30,9 +29,10 @@ struct cpu_state {
 
 typedef void (*isr_func)(struct cpu_state*);
 
-
 #define INT_KERNEL (0)
 #define INT_USER   (1)
+
+#define INT_BASE (0x20)
 
 #define INT_PIT        (0x20)
 #define INT_KEYBOARD   (0x21)
@@ -40,7 +40,5 @@ typedef void (*isr_func)(struct cpu_state*);
 #define INT_RTC        (0x28)
 #define INT_SYSCALL    (0x80)
 
-
-void interrupt_register(u32 isr_num, isr_func f, u32 int_type);
-void interrupt_enable(u32 isr_num, bool enable);
-
+void interrupt_register(u8 isr_num, isr_func f, u32 int_type);
+void interrupt_enable(u8 isr_num, bool enable);

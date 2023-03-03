@@ -146,16 +146,14 @@ void (*_handlers[])(struct cpu_state*) = {
 	NULL, NULL, NULL, NULL,
 };
 
-
-static void syscall_handle(struct cpu_state *cpu_state) {
-	u64 syscall_number = cpu_state->rax;
-	if (syscall_number >= sizeof(_handlers) / sizeof(_handlers[0])) {
-		cpu_state->rax = -1;
+static void syscall_handle(struct cpu_state *state) {
+	u64 syscall_number = state->rax;
+	if (_handlers[syscall_number] == NULL) {
+		state->rax = -1;
 	} else {
-		_handlers[syscall_number](cpu_state);
+		_handlers[syscall_number](state);
 	}
 }
-
 
 void syscall_init(struct boot_info *boot_info) {
 	gdt_init(boot_info->stack_addr);
