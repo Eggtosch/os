@@ -84,7 +84,7 @@ run-uefi: build
 	qemu-system-x86_64 -enable-kvm -bios $(QEMU_UEFI) -serial stdio -s -drive format=raw,file=$(ISO)
 
 .PHONY: install
-install:
+install: build
 	@test $(dev) || (echo Need argument 'dev=<device_path>' for target \'install\' && false)
 	./scripts/install.sh $(shell pwd) $(ISO) $(dev) $(LOG_DD)
 
