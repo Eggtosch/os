@@ -65,5 +65,5 @@ int sys_munmap(void *addr, u64 length);
  */
 void sys_exit(void);
 
+u64 sys_fb_info(void);
 i64 sys_fb_write(u16 x, u16 y, u16 width, u16 height, u32 *buffer);
-

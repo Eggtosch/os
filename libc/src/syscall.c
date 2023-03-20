@@ -29,6 +29,12 @@ void sys_exit(void) {
 	asm volatile(SYSCALL :: "a"(0x21) : "memory");
 }
 
+u64 sys_fb_info(void) {
+	u64 ret;
+	asm volatile(SYSCALL : "=a"(ret) : "a"(0x40) : "memory");
+	return ret;
+}
+
 i64 sys_fb_write(u16 x, u16 y, u16 width, u16 height, u32 *buffer) {
 	i64 ret;
 	u64 dimensions = (u64) x << 48 | (u64) y << 32 | (u64) width << 16 | (u64) height;
