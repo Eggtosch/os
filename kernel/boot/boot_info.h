@@ -38,6 +38,13 @@ struct boot_info {
 		u16 fb_width;
 		u16 fb_height;
 		u16 fb_pitch;
+		u64 fb_nmodes;
+		struct fb_mode {
+			u64 fb_pitch;
+			u64 fb_width;
+			u64 fb_height;
+			u16 fb_bpp;
+		} **fb_modes;
 	} fb_info;
 
 	struct mem_info {

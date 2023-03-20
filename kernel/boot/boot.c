@@ -135,6 +135,8 @@ void _start(void) {
 	boot_info.fb_info.fb_width	= fb->width;
 	boot_info.fb_info.fb_height	= fb->height;
 	boot_info.fb_info.fb_pitch	= fb->pitch;
+	boot_info.fb_info.fb_nmodes = fb->mode_count;
+	boot_info.fb_info.fb_modes  = (void*) fb->modes;
 
 	boot_info.mem_info.mem_entries = memmap->entry_count;
 	boot_info.mem_info.mem_map	   = (struct mem_entry**) memmap->entries;
