@@ -107,7 +107,4 @@ enum cpuid_flags {
 void cpu_init(struct boot_info *boot_info);
 bool cpu_has_flag(enum cpuid_flags flag);
 
-void cpu_reset(void);
-
 bool cpuid(u32 leaf, u32 subleaf, u32 *eax, u32 *ebx, u32 *ecx, u32 *edx);
-

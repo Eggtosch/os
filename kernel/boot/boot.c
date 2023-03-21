@@ -41,6 +41,12 @@ static struct limine_module_request module_req = {
 	.response = NULL
 };
 
+static struct limine_efi_system_table_request efi_req = {
+	.id = LIMINE_EFI_SYSTEM_TABLE_REQUEST,
+	.revision = 0,
+	.response = NULL,
+};
+
 __attribute__((section(".limine_reqs"), used))
 static void *request[] = {
 	&kerneladdr_req,
@@ -49,6 +55,7 @@ static void *request[] = {
 	&terminal_req,
 	&framebuffer_req,
 	&module_req,
+	&efi_req,
 	NULL
 };
 
@@ -127,9 +134,12 @@ void _start(void) {
 	struct limine_rsdp_response *rsdp_info = rsdp_req.response;
 	assert(rsdp_info != NULL, "No rsdp table pointer found!\n");
 
+	struct limine_efi_system_table_response *efi_info = efi_req.response;
+
 	boot_info.fb_print = write;
 	boot_info.stack_addr = stack_addr;
 	boot_info.rsdp = rsdp_info->address;
+	boot_info.efi_ptr = efi_info != NULL ? efi_info->address : NULL;
 
 	boot_info.fb_info.fb_addr	= fb->address;
 	boot_info.fb_info.fb_width	= fb->width;

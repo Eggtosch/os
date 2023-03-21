@@ -32,6 +32,7 @@ struct boot_info {
 	void (*fb_print)(const char *msg, u64 len);
 	void *stack_addr;
 	void *rsdp;
+	void *efi_ptr;
 
 	struct fb_info {
 		u32 *fb_addr;

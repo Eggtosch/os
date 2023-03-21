@@ -14,6 +14,7 @@
 
 #include <interrupts/idt.h>
 #include <syscall/syscall.h>
+#include <syscall/efi.h>
 
 #include <driver/driver.h>
 #include <driver/util.h>
@@ -27,8 +28,10 @@ extern driver_init_t __start_driver_init[];
 extern driver_init_t __stop_driver_init[];
 
 void kmain(struct boot_info *boot_info) {
+	efi_functions_init(boot_info);
 	stdio_init(serial_io_device_get());
 	kprintf("collected boot information\n");
+	kprintf("booted with %s\n", efi_supported() ? "uefi" : "bios");
 	kprintf("initialized early stdio output (serial device)\n");
 
 	pmm_init(boot_info);

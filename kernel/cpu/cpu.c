@@ -38,11 +38,6 @@ bool cpu_has_flag(enum cpuid_flags flag) {
 	return (cpuid_info.ext_flags & (1UL << (flag - 64))) != 0;
 }
 
-void cpu_reset(void) {
-	acpi_reset();
-	io_outw(0x604, 0x2000);
-}
-
 bool cpuid(u32 leaf, u32 subleaf, u32 *eax, u32 *ebx, u32 *ecx, u32 *edx) {
 	u32 cpuid_max;
 	asm volatile("cpuid" : "=a"(cpuid_max) : "a"(leaf & 0x80000000) :
@@ -53,4 +48,3 @@ bool cpuid(u32 leaf, u32 subleaf, u32 *eax, u32 *ebx, u32 *ecx, u32 *edx) {
 						   "a"(leaf), "c"(subleaf));
 	return true;
 }
-
