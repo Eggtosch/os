@@ -50,12 +50,12 @@ $(CROSS_COMPILER):
 	./scripts/build-cross-compiler.sh
 
 $(LIMINE_DIR):
-	git clone --depth 1 --branch v4.20221030.0-binary https://github.com/limine-bootloader/limine.git
+	git clone --depth 1 --branch v4.20230317.0-binary https://github.com/limine-bootloader/limine.git
 	make -C limine
 	rm limine/limine-version* limine/limine-deploy.exe
 	rm limine/*.c limine/*.h
 	rm limine/*.EFI
-	rm limine/Makefile limine/LICENSE.md limine/install-sh
+	rm limine/Makefile limine/LICENSE limine/install-sh
 	rm limine/.gitignore
 	rm -rf limine/.git
 
