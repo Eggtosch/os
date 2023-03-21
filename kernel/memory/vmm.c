@@ -193,8 +193,9 @@ void vmm_map_data(pagedir_t *pagedir, void *virt_addr, void *data, u64 data_size
 
 u64 vmm_vaddr_to_phys(pagedir_t *pagedir, void *virt_addr) {
 	u64 page_offset = (u64) virt_addr & 0xfff;
-	u64 *entry = pd_entry(pagedir, virt_addr);
-	return (*entry & ~((u64) 0b111)) + page_offset;
+	u64 *entryp = pd_entry(pagedir, virt_addr); //TODO mask away higher bits
+	u64 entry = *entryp & 0x7fffffffff000;
+	return entry + page_offset;
 }
 
 void vmm_unmap(pagedir_t *pagedir, void *virt_addr, u64 size) {
