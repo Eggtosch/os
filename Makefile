@@ -73,7 +73,7 @@ fonts:
 
 .PHONY: run
 run: build
-	qemu-system-x86_64 -enable-kvm -serial stdio -s -drive format=raw,file=$(ISO)
+	qemu-system-x86_64 -enable-kvm -smp 4 -serial stdio -s -drive format=raw,file=$(ISO)
 
 .PHONY: run-dbg
 run-dbg: build

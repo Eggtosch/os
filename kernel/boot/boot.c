@@ -47,6 +47,13 @@ static struct limine_efi_system_table_request efi_req = {
 	.response = NULL,
 };
 
+static struct limine_smp_request smp_req = {
+	.id = LIMINE_SMP_REQUEST,
+	.revision = 0,
+	.response = NULL,
+	.flags = 0,
+};
+
 __attribute__((section(".limine_reqs"), used))
 static void *request[] = {
 	&kerneladdr_req,
@@ -56,6 +63,7 @@ static void *request[] = {
 	&framebuffer_req,
 	&module_req,
 	&efi_req,
+	&smp_req,
 	NULL
 };
 
@@ -136,6 +144,9 @@ void _start(void) {
 
 	struct limine_efi_system_table_response *efi_info = efi_req.response;
 
+	struct limine_smp_response *smp_info = smp_req.response;
+	assert(smp_info != NULL, "No smp info found!\n");
+
 	boot_info.fb_print = write;
 	boot_info.stack_addr = stack_addr;
 	boot_info.rsdp = rsdp_info->address;
@@ -148,10 +159,14 @@ void _start(void) {
 	boot_info.fb_info.fb_nmodes = fb->mode_count;
 	boot_info.fb_info.fb_modes  = (void*) fb->modes;
 
-	boot_info.mem_info.mem_entries = memmap->entry_count;
-	boot_info.mem_info.mem_map	   = (struct mem_entry**) memmap->entries;
+	boot_info.mem_info.mem_entries  = memmap->entry_count;
+	boot_info.mem_info.mem_map	    = (struct mem_entry**) memmap->entries;
 	boot_info.mem_info.mem_pmm_base = base_addr_info->physical_base;
 	boot_info.mem_info.mem_vmm_base = base_addr_info->virtual_base;
+
+	boot_info.smp_info.bsp_lapic_id = smp_info->bsp_lapic_id;
+	boot_info.smp_info.cpu_count    = smp_info->cpu_count;
+	boot_info.smp_info.smp_cpus     = (struct smp_cpu**) smp_info->cpus;
 
 	boot_info.module_info.module_count = module_info->module_count;
 	boot_info.module_info.modules      = (struct kernel_module**) module_info->modules;
@@ -163,4 +178,3 @@ void _start(void) {
 		asm("hlt");
 	}
 }
-

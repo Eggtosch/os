@@ -24,6 +24,10 @@
 
 #include <panic.h>
 
+static void f(__unused struct smp_cpu *cpu) {
+	asm("hlt");
+}
+
 extern driver_init_t __start_driver_init[];
 extern driver_init_t __stop_driver_init[];
 
@@ -46,6 +50,10 @@ void kmain(struct boot_info *boot_info) {
 
 	idt_init();
 	syscall_init(boot_info);
+
+	for (u32 i = 0; i < boot_info->smp_info.cpu_count; i++) {
+		boot_info->smp_info.smp_cpus[i]->cpu_entry = f;
+	}
 
 	u64 ndrivers = (__stop_driver_init - __start_driver_init);
 	kprintf("found %d available drivers\n", ndrivers);

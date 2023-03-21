@@ -2,7 +2,6 @@
 
 #include <common.h>
 
-
 enum MEM_TYPE {
 	MEM_USABLE                 = 0,
 	MEM_RESERVED               = 1,
@@ -62,6 +61,18 @@ struct boot_info {
 
 	} mem_info;
 
+	struct smp_info {
+		u32 bsp_lapic_id;
+		u64 cpu_count;
+		struct smp_cpu {
+			u32 cpu_id;
+			u32 lapic_id;
+			u64 _reserved;
+			void (*cpu_entry)(struct smp_cpu*);
+			u64 arg;
+		} **smp_cpus;
+	} smp_info;
+
 	struct module_info {
 		u64 module_count;
 
@@ -87,4 +98,3 @@ struct boot_info {
 };
 
 struct boot_info *boot_info_get(void);
-
