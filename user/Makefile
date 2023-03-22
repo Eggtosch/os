@@ -16,4 +16,3 @@ $(PROGRAMS_CLEAN):
 	$(eval DIR    := $(patsubst %-clean,%,$@))
 	$(eval TARGET := $(BINDIR)/$(patsubst %.user,%.elf,$@))
 	$(MAKE) --no-print-directory -C $(DIR) clean TARGET=$(TARGET)
-

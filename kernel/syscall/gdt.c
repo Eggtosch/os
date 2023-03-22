@@ -2,7 +2,6 @@
 
 #include <common.h>
 
-
 struct gdt_entry {
 	u16 limit_0_15;
 	u16 base_0_15;
@@ -63,10 +62,8 @@ static_assert(sizeof(struct gdt_entry) == 8, "");
 static_assert(sizeof(struct gdt) == 11 * sizeof(struct gdt_entry), "");
 static_assert(sizeof(struct tss) == 104, "");
 
-
 static struct gdt _gdt;
 static struct tss _tss;
-
 
 extern void asm_load_gdt_and_tss(struct gdt_ptr *gdt_ptr);
 
@@ -122,4 +119,3 @@ void gdt_init(void *kernel_stack) {
 
 	asm_load_gdt_and_tss(&new_gdt_ptr);
 }
-

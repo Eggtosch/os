@@ -105,4 +105,3 @@ void kprintf(const char *fmt, ...) {
 	boot_info->fb_print(buf, len);
 	va_end(args);
 }
-

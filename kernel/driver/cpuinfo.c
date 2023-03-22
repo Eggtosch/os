@@ -82,4 +82,3 @@ static void cpuinfo_init(__unused struct boot_info *boot_info) {
 }
 
 driver_init("cpuinfo", cpuinfo_init);
-

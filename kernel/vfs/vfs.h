@@ -13,4 +13,3 @@ u64 vfs_write(const char *pathname, u8 *buf, u64 buflen, u64 offset);
 struct io_device *vfs_get(int fd);
 
 void vfs_print_entries(void);
-

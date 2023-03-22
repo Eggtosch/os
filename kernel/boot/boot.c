@@ -67,7 +67,6 @@ static void *request[] = {
 	NULL
 };
 
-
 static void write(const char *string, u64 length) {
 	struct limine_terminal *term = terminal_req.response->terminals[0];
 	terminal_req.response->write(term, string, length);
@@ -98,7 +97,6 @@ static void _assert(bool cond, const char *cond_str, const char *func_str, const
 		asm("hlt");
 	}
 }
-
 
 static struct boot_info boot_info;
 

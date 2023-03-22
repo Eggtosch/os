@@ -45,4 +45,3 @@ typedef _Bool bool;
 
 void kprintf(const char *fmt, ...);
 void kloop(void);
-

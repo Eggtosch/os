@@ -90,4 +90,3 @@ struct io_device pipe_new(void) {
 	dev.userdata = (void*)(u64) index;
 	return dev;
 }
-

@@ -391,4 +391,3 @@ struct limine_dtb_request {
     u64 revision;
     struct limine_dtb_response *response;
 };
-

@@ -13,4 +13,3 @@ u64   printf(const char *fmt, ...);
 u64  vprintf(const char *fmt, va_list args);
 u64  fprintf(struct io_device *stream, const char *fmt, ...);
 u64 vfprintf(struct io_device *stream, const char *fmt, va_list args);
-

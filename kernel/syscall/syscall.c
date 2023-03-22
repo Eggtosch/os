@@ -14,7 +14,6 @@
 
 #include <framebuffer/framebuffer.h>
 
-
 static void sys_open(struct cpu_state *cpu_state) {
 	const char *name = (const char*) cpu_state->rbx;
 	cpu_state->rax = vfs_open(name);
@@ -162,4 +161,3 @@ void syscall_init(struct boot_info *boot_info) {
 	kprintf("initialized gdt\n");
 	kprintf("registered syscall interrupt at %#x\n", INT_SYSCALL);
 }
-

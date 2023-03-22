@@ -49,16 +49,13 @@ struct boot_info {
 
 	struct mem_info {
 		u64 mem_entries;
-
 		struct mem_entry {
 			void *mem_base;
 			u64 mem_length;
 			u64 mem_type;
 		} **mem_map;
-
 		u64 mem_pmm_base;
 		u64 mem_vmm_base;
-
 	} mem_info;
 
 	struct smp_info {
@@ -75,7 +72,6 @@ struct boot_info {
 
 	struct module_info {
 		u64 module_count;
-
 		struct kernel_module {
 			u64 revision;
 			void *addr;
@@ -92,9 +88,7 @@ struct boot_info {
 			struct uuid gpt_part_uuid;
 			struct uuid part_uuid;
 		} **modules;
-
 	} module_info;
-
 };
 
 struct boot_info *boot_info_get(void);

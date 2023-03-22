@@ -6,7 +6,6 @@
 #include <panic.h>
 #include <common.h>
 
-
 static pagedir_t *_kernel_page_dir;
 static u64 _higher_half_map_index;
 static u64 _kernel_map_index;
@@ -209,4 +208,3 @@ void vmm_unmap(pagedir_t *pagedir, void *virt_addr, u64 size) {
 		pmm_free(pmm_to_virt(phys_addr), 1);
 	}
 }
-

@@ -26,4 +26,3 @@ void syscall_init(struct boot_info *boot_info);
  * 0x41: i64 fb_read(u64 dimensions, u32 *buf);
  * 0x42: i64 fb_write(u64 dimensions, u32 *buf);
  */
-

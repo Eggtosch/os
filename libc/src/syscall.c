@@ -1,8 +1,6 @@
 #include <syscall.h>
 
-
 #define SYSCALL "int $0x80"
-
 
 int sys_open(const char *name, u64 flags) {
 	u64 fd;
@@ -41,4 +39,3 @@ i64 sys_fb_write(u16 x, u16 y, u16 width, u16 height, u32 *buffer) {
 	asm volatile(SYSCALL : "=a"(ret) : "a"(0x42), "b"(dimensions), "c"(buffer) : "memory");
 	return ret;
 }
-

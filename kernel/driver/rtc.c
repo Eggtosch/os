@@ -156,4 +156,3 @@ static void rtc_init(__unused struct boot_info *boot_info) {
 }
 
 driver_init("rtc", rtc_init);
-

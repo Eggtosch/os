@@ -21,4 +21,3 @@ void vmm_map(pagedir_t *pagedir, void *virt_addr, u64 size);
 void vmm_map_data(pagedir_t *pagedir, void *virt_addr, void *data, u64 data_size);
 u64 vmm_vaddr_to_phys(pagedir_t *pagedir, void *virt_addr);
 void vmm_unmap(pagedir_t *pagedir, void *virt_addr, u64 size);
-

@@ -40,9 +40,7 @@ static const char *exception_names[] = {
 	" - : (reserved)"
 };
 
-
 static isr_func isr_functions[256];
-
 
 void interrupt_register(u8 isr_num, isr_func f, u32 int_type) {
 	isr_functions[isr_num] = f;

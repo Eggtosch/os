@@ -41,4 +41,3 @@ void scheduler_enable(bool enable) {
 	interrupt_enable(INT_PIT, enable);
 	kprintf("%sabling scheduler timer interrupts\n", enable ? "en" : "dis");
 }
-

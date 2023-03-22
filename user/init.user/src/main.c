@@ -21,4 +21,3 @@ void _start(const char *program, u64 progsize) {
 
 	sys_exit();
 }
-

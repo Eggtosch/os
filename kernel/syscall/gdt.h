@@ -4,4 +4,3 @@
 #define SEGMENT_USER_CODE   (0x38)
 
 void gdt_init(void *stack_addr);
-

@@ -2,7 +2,6 @@
 #include <interrupts/interrupts.h>
 #include <io/io.h>
 
-
 #define KEYBOARD_DATA (0x60)
 #define KEYBOARD_CMD  (0x64)
 
@@ -20,7 +19,6 @@ static char _scancodes[] = {
 	0, 0, ' ', 0, ' ', 0, 0, 0, 0, 0, 0,
 	[0x56] = '<'
 };
-
 
 static u64 keyboard_read(__unused struct io_device *stream, u8 *buf, u64 size, __unused u64 offset) {
 	u64 i = 0;
@@ -66,4 +64,3 @@ static void keyboard_init(__unused struct boot_info *boot_info) {
 }
 
 driver_init("keyboard", keyboard_init);
-

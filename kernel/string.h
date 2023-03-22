@@ -9,4 +9,3 @@ u64   strncpy_s(char *dst, const char *src, u64 dst_len);
 void *memset(void *ptr, int value, u64 num);
 void *memcpy(void *dst, const void *src, u64 count);
 int   memcmp(void *ptr1, void *ptr2, u64 count);
-

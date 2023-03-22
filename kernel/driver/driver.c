@@ -6,4 +6,3 @@ void driver_register(__unused const char *name, struct driver_file *files) {
 		vfs_mount(files->filepath, &files->stream);
 	}
 }
-

@@ -164,4 +164,3 @@ int elf_load(u8 *elf, pagedir_t **pagedir, u64 *entry) {
 
 	return ELF_OK;
 }
-

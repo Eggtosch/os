@@ -146,4 +146,3 @@ struct io_device *process_get_fd(pid_t pid, int fd) {
 		return get_fd(pid, fd & 1);
 	}
 }
-

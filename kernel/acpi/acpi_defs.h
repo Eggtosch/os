@@ -196,4 +196,3 @@ struct acpi_madt_apic_nmi {
 	u16 flags;
 	u8 lapic_int;
 } __attribute__((packed));
-

@@ -14,4 +14,3 @@ struct io_device {
 	io_dev_close close;
 	void *userdata;
 };
-

@@ -18,7 +18,6 @@ LDFLAGS =												\
 	-zmax-page-size=0x1000								\
 	-static
 
-
 OBJDIR       := .bin
 ALL_SRC_DIRS := $(shell find . -type d ! -path "./$(OBJDIR)" ! -path "./$(OBJDIR)/*" -printf '%P\n')
 MKDIRS       := $(patsubst %, $(OBJDIR)/%, $(ALL_SRC_DIRS))
@@ -57,4 +56,3 @@ clean:
 	rm -rf $(KERNEL)
 	rm -rf $(KERNEL_OBJS)
 	rm -rf $(HEADER_DEPS)
-

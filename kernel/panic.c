@@ -34,4 +34,3 @@ __attribute__((noreturn)) void _panic(const char *file, const char *function, in
 		asm volatile("hlt");
 	}
 }
-

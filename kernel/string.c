@@ -80,4 +80,3 @@ int memcmp(void *ptr1, void *ptr2, u64 count) {
 	}
 	return *p1 - *p2;
 }
-

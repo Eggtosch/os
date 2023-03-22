@@ -1,7 +1,6 @@
 #include <io/stdio.h>
 #include <string.h>
 
-
 #define FLAGS_LEFT 		(1 << 0)
 #define FLAGS_UPPERCASE (1 << 1)
 #define FLAGS_HASH		(1 << 2)
@@ -327,4 +326,3 @@ u64 fprintf(struct io_device *stream, const char *fmt, ...) {
 	va_end(args);
 	return len;
 }
-

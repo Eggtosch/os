@@ -35,4 +35,3 @@ static void random_init(__unused struct boot_info *boot_info) {
 }
 
 driver_init("random", random_init);
-

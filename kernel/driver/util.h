@@ -21,4 +21,3 @@ i64 time(void);
 i64 time_since_boot(void);
 u64 time_current_ns(void);
 i64 time_from_struct(struct time time);
-

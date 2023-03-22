@@ -11,4 +11,3 @@
 int elf_validate(u8 *elf);
 int elf_load(u8 *elf, u64 **pagedir, u64 *entry);
 const char *elf_error_str(int err);
-

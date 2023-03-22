@@ -9,4 +9,3 @@ void pmm_free(void *ptr, u64 page_count);
 u64  pmm_get_free_bytes(void);
 u64  pmm_to_phys(void* vaddr);
 void* pmm_to_virt(u64 paddr);
-

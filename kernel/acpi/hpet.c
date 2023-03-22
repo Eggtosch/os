@@ -107,4 +107,3 @@ u64 hpet_current_ns(void) {
 	u64 time_since_last_sec = NS_PER_SEC - ns_until_next_second;
 	return time_since_last_sec;
 }
-

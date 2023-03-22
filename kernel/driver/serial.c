@@ -3,7 +3,6 @@
 
 #define COM1 0x3f8
 
-
 static bool serial_recv_ready(void) {
 	return io_inb(COM1 + 5) & 1;
 }
@@ -54,4 +53,3 @@ static void serial_init(__unused struct boot_info *boot_info) {
 }
 
 driver_init("serial", serial_init);
-

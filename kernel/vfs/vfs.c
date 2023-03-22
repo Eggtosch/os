@@ -6,7 +6,6 @@
 #include <string.h>
 #include <common.h>
 
-
 struct vfs_entry {
 	struct io_device *stream;
 	char name[248];
@@ -16,11 +15,9 @@ static_assert(sizeof(struct vfs_entry) == 256, "");
 
 #define ENTRIES_PER_PAGE (PAGE_SIZE / sizeof(struct vfs_entry))
 
-
 static struct vfs_entry *_vfs;
 static u64 _vfs_size;
 static u64 _vfs_cap;
-
 
 void vfs_init(void) {
 	_vfs = pmm_alloc(1);
@@ -99,4 +96,3 @@ struct io_device *vfs_get(int fd) {
 	}
 	return _vfs[fd].stream;
 }
-

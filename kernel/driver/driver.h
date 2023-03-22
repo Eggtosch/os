@@ -19,4 +19,3 @@ struct driver_file {
 };
 
 void driver_register(const char *name, struct driver_file *files);
-

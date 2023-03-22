@@ -20,14 +20,11 @@ struct idt_ptr {
 
 static_assert(sizeof(struct idt_ptr) == 10, "sizeof struct idt_ptr must be 10!");
 
-
 extern void asm_load_idt(struct idt_ptr *idt_ptr);
 extern u64  asm_isr_names[];
 
-
 static struct idt_descriptor _idt[256];
 static struct idt_ptr        _idt_ptr;
-
 
 void idt_create_descriptor(u8 index, u8 type_and_attributes) {
 	u64 offset = asm_isr_names[index];

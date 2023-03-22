@@ -1,9 +1,8 @@
-#include <memory/pmm.h>
-
 #include <cpu/cpu.h>
 #include <io/stdio.h>
 #include <string.h>
 #include <panic.h>
+#include <memory/pmm.h>
 
 #define VIRTUAL_ADDR_OFFSET (0xffff800000000000UL)
 
@@ -14,10 +13,8 @@ struct mem_bitmap {
 	u64  mem_lowest_free_page;
 };
 
-
 static struct mem_info *_mem_info;
 static struct mem_bitmap _bitmap;
-
 
 static void mem_bitmap_set(u64 bit) {
 	if (bit / 64 > _bitmap.mem_size) {
@@ -228,4 +225,3 @@ void *pmm_to_virt(u64 paddr) {
 	}
 	return vaddr + VIRTUAL_ADDR_OFFSET;
 }
-
