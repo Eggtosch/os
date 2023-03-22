@@ -41,4 +41,3 @@ void wrmsr(u32 msr, u64 value) {
 	u32 edx = value >> 32;
 	asm volatile("wrmsr" :: "a"(eax), "d"(edx), "c"(msr) : "memory");
 }
-

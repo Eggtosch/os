@@ -25,8 +25,8 @@ void apic_register(u8 id) {
 
 	apic_base = pmm_to_virt(APIC_BASE);
 
-	u64 apic_msr = rdmsr(0x1B);
-	wrmsr(0x1B, apic_msr | (1 << 11));
+	u64 apic_msr = rdmsr(MSR_APIC_BASE);
+	wrmsr(MSR_APIC_BASE, apic_msr | (1 << 11));
 
 	apic_write32(APIC_TPR, 0);
 

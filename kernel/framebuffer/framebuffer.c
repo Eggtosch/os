@@ -30,7 +30,7 @@ static u64 alignup_power2(u64 value, u64 align) {
 }
 
 static u64 enable_mtrr(u32 *addr, u64 pitch, u64 height) {
-	u64 ia32_mtrrcap = rdmsr(0xfe);
+	u64 ia32_mtrrcap = rdmsr(MSR_MTRR_CAP);
 	if (!(ia32_mtrrcap & (1 << 10))) {
 		return 1;
 	}
@@ -46,19 +46,19 @@ static u64 enable_mtrr(u32 *addr, u64 pitch, u64 height) {
 
 	u8 nregs = ia32_mtrrcap & 0xff;
 	for (u32 i = 0; i < nregs; i++) {
-		u64 mtrrbase = rdmsr(0x200 + i * 2);
-		u64 mtrrmask = rdmsr(0x200 + i * 2 + 1);
+		u64 mtrrbase = rdmsr(MSR_MTRR_PHYS_BASE_0 + i * 2);
+		u64 mtrrmask = rdmsr(MSR_MTRR_PHYS_BASE_0 + i * 2 + 1);
 		if (mtrr_range_overlap(mtrrbase, mtrrmask, base, size)) {
 			return 1;
 		}
 	}
 
 	for (u8 i = 0; i < nregs; i++) {
-		if (rdmsr(0x200 + i * 2 + 1) & (1 << 11))
+		if (rdmsr(MSR_MTRR_PHYS_BASE_0 + i * 2 + 1) & (1 << 11))
 			continue;
 
-		wrmsr(0x200 + i * 2,     base | 0x1);
-		wrmsr(0x200 + i * 2 + 1, mask | (1 << 11));
+		wrmsr(MSR_MTRR_PHYS_BASE_0 + i * 2,     base | 0x1);
+		wrmsr(MSR_MTRR_PHYS_BASE_0 + i * 2 + 1, mask | (1 << 11));
 		return 0;
 	}
 
@@ -118,4 +118,3 @@ i64 framebuffer_write(u16 x, u16 y, u16 width, u16 height, u32 *buffer) {
 
 	return (u64) src - (u64) buffer;
 }
-
