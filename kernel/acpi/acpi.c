@@ -1,6 +1,6 @@
 #include <acpi/acpi.h>
 #include <acpi/acpi_defs.h>
-#include <acpi/hpet.h>
+#include <time/hpet.h>
 #include <interrupts/ioapic.h>
 #include <interrupts/lapic.h>
 #include <io/stdio.h>

@@ -1,8 +1,8 @@
-#include <acpi/hpet.h>
 #include <io/stdio.h>
 #include <boot/boot_info.h>
 #include <string.h>
 #include <memory/pmm.h>
+#include <time/hpet.h>
 
 #define HPET_EN					(1 << 0)
 #define HPET_LEGACY_EN			(1 << 1)

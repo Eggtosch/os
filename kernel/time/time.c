@@ -1,10 +1,9 @@
-#include <driver/driver.h>
-#include <driver/util.h>
 #include <interrupts/interrupts.h>
 #include <io/io.h>
 #include <io/stdio.h>
 #include <acpi/acpi.h>
-#include <acpi/hpet.h>
+#include <time/hpet.h>
+#include <time/time.h>
 
 #define SECONDS_IN_MINUTE   (60L)
 #define SECONDS_IN_HOUR     (60L * SECONDS_IN_MINUTE)
@@ -116,24 +115,7 @@ static void rtc_irq(__unused struct cpu_state *cpu_state) {
 	hpet_next_timeout(HPET_TIMER_RTC);
 }
 
-static u64 rtc_read_time(__unused struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
-	u64 timestamp = time();
-	return snprintf((char*) buf, buflen, "%d", timestamp);
-}
-
-static u64 rtc_read_date(__unused struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
-	struct time time = rtc_global_time;
-	return snprintf((char*) buf, buflen, "%0.2d.%0.2d.%d %0.2d:%0.2d:%0.2d",
-		time.day, time.month, time.century * 100 + time.year, time.hours, time.minutes, time.seconds);
-}
-
-static struct driver_file driver_files[] = {
-	{"/dev/date", {rtc_read_date, NULL, NULL, NULL}},
-	{"/dev/time", {rtc_read_time, NULL, NULL, NULL}},
-	{NULL, {NULL, NULL, NULL, NULL}},
-};
-
-static void rtc_init(__unused struct boot_info *boot_info) {
+void time_init(void) {
 	rtc_global_time = get_rtc_struct();
 
 	interrupt_register(INT_RTC, rtc_irq, INT_KERNEL);
@@ -147,12 +129,9 @@ static void rtc_init(__unused struct boot_info *boot_info) {
 	read_register(0x0c);
 
 	interrupt_enable(INT_RTC, true);
-	driver_register("rtc", driver_files);
 
 	rtc_global_time = get_rtc_struct();
 	boot_time = time_from_struct(rtc_global_time);
 
 	asm volatile("sti");
 }
-
-driver_init("rtc", rtc_init);

@@ -15,6 +15,7 @@
 #include <interrupts/idt.h>
 #include <syscall/syscall.h>
 #include <syscall/efi.h>
+#include <time/time.h>
 
 #include <driver/driver.h>
 #include <driver/util.h>
@@ -49,6 +50,7 @@ void kmain(struct boot_info *boot_info) {
 	vfs_init();
 
 	idt_init();
+	time_init();
 	syscall_init(boot_info);
 
 	for (u32 i = 0; i < boot_info->smp_info.cpu_count; i++) {
@@ -76,17 +78,9 @@ void kloop(void) {
 		panic("kloop executed when other process was running!");
 	}
 
-	struct boot_info *boot_info = boot_info_get();
-	char buf[80];
-	int fd = vfs_open("/dev/date");
-	struct io_device *dev = vfs_get(fd);
 	while(1) {
 		asm("sti");
 		asm("hlt");
-		int len = dev->read(dev, (u8*) buf, 80, 0);
-		boot_info->fb_print(buf, len);
-		boot_info->fb_print("\r", 1);
-		printf("%s\r", buf);
 	}
 }
 

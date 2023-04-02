@@ -9,8 +9,8 @@
 
 #include <process/process.h>
 
-#include <driver/util.h>
-#include <acpi/hpet.h>
+#include <time/time.h>
+#include <time/hpet.h>
 
 #include <framebuffer/framebuffer.h>
 

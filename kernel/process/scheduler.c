@@ -2,9 +2,9 @@
 #include <process/process.h>
 #include <interrupts/interrupts.h>
 #include <memory/vmm.h>
-#include <acpi/hpet.h>
 #include <io/stdio.h>
-#include <driver/util.h>
+#include <time/hpet.h>
+#include <time/time.h>
 
 extern void asm_jump_usermode(u64 addr, u64 stack, u64 prog, u64 size);
 
