@@ -53,6 +53,7 @@ $(LIMINE_DIR):
 	git clone --depth 1 --branch v4.20230317.0-binary https://github.com/limine-bootloader/limine.git
 	make -C limine
 	rm limine/limine-version* limine/limine-deploy.exe
+	rm limine/limine-enroll-config limine/limine-enroll-config.exe
 	rm limine/*.c limine/*.h
 	rm limine/*.EFI
 	rm limine/Makefile limine/LICENSE limine/install-sh
