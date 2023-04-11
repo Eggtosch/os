@@ -59,26 +59,7 @@ static void sys_exec(struct cpu_state *cpu_state) {
 
 static void sys_exit(struct cpu_state *cpu_state) {
 	(void) cpu_state;
-	struct process *p = process_get(process_current());
-
-	p->status = PROC_NONE;
-
-	if (p->read_pipe.close != NULL) {
-		p->read_pipe.close(&p->read_pipe);
-	}
-	if (p->write_pipe.close != NULL) {
-		p->write_pipe.close(&p->write_pipe);
-	}
-
-	for (int i = 0; i < 8; i++) {
-		if (p->fds[i] != NULL && p->fds[i]->close != NULL) {
-			p->fds[i]->close(p->fds[i]);
-		}
-	}
-
-	vmm_set_pagedir(NULL);
-	vmm_pagedir_destroy(p->pagedir);
-
+	process_destroy(process_current());
 	kloop();
 }
 

@@ -106,43 +106,35 @@ pid_t process_create(const char *name) {
 	return pid;
 }
 
+void process_destroy(pid_t pid) {
+	if (pid >= MAX_PROCESSES) {
+		return;
+	}
+
+	struct process *p = &_processes[pid];
+
+	p->status = PROC_NONE;
+
+	if (p->read_pipe.dev.close != NULL) {
+		p->read_pipe.dev.close((struct io_device*) &p->read_pipe);
+	}
+	if (p->write_pipe.dev.close != NULL) {
+		p->write_pipe.dev.close((struct io_device*) &p->write_pipe);
+	}
+
+	vmm_set_pagedir(NULL);
+	vmm_pagedir_destroy(p->pagedir);
+	p->entry = 0;
+}
+
 struct process *process_get(pid_t pid) {
+	if (pid >= MAX_PROCESSES) {
+		return NULL;
+	}
+
 	return &_processes[pid];
 }
 
 pid_t process_current(void) {
 	return _current_process;
-}
-
-static struct io_device *get_fd(pid_t pid, int fd) {
-	if (_processes[pid].status == PROC_NONE || fd < 0 || fd > 10) {
-		return NULL;
-	}
-
-	if (fd == 0) {
-		return &_processes[pid].read_pipe;
-	} else if (fd == 1) {
-		return &_processes[pid].write_pipe;
-	} else {
-		return _processes[pid].fds[fd - 2];
-	}
-}
-
-struct io_device *process_get_fd(pid_t pid, int fd) {
-	if (pid >= MAX_PROCESSES) {
-		return NULL;
-	}
-
-	if (pid != 0) {
-		return get_fd(pid, fd);
-	}
-
-	if (fd > MAX_PROCESSES * 2 + 8) {
-		return NULL;
-	} else if (fd < 8) {
-		return get_fd(0, fd);
-	} else {
-		pid = fd / 2;
-		return get_fd(pid, fd & 1);
-	}
 }

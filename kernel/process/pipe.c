@@ -3,46 +3,8 @@
 #include <memory/pmm.h>
 #include <panic.h>
 
-#define ENTRIES_PER_PAGE (PAGE_SIZE / sizeof(struct pipe))
-
-struct pipe {
-	int position;
-	int size;
-	u8 *buffer;
-};
-
-static_assert(sizeof(struct pipe) == 16, "");
-
-static struct pipe *_pipes = NULL;
-static int _pipes_cap = 0;
-static int _pipes_size = 0;
-
-static int first_free_pipe(void) {
-	if (_pipes_size >= _pipes_cap) {
-		if (_pipes_cap == 0) {
-			_pipes_cap = ENTRIES_PER_PAGE;
-			_pipes = pmm_alloc(1);
-		} else {
-			_pipes_cap *= 2;
-			struct pipe *newpipes = pmm_alloc(_pipes_cap * ENTRIES_PER_PAGE);
-			memcpy(newpipes, _pipes, _pipes_size * sizeof(struct pipe));
-			pmm_free(_pipes, _pipes_cap / ENTRIES_PER_PAGE);
-			_pipes = newpipes;
-		}
-	}
-
-	for (int i = 0; i < _pipes_cap; i++) {
-		if (_pipes[i].buffer == NULL) {
-			return i;
-		}
-	}
-
-	panic("No pipes left, this should not be possible\n");
-}
-
 static u64 pipe_read(struct io_device *dev, u8 *buf, u64 bufsize, __unused u64 offset) {
-	int index = (int)(u64) dev->userdata;
-	struct pipe *pipe = &_pipes[index];
+	struct pipe *pipe = (struct pipe*) dev;
 	u64 bytes = (u64) pipe->size <= bufsize ? (u64) pipe->size : bufsize;
 
 	for (u64 i = 0; i < bytes; i++) {
@@ -55,8 +17,7 @@ static u64 pipe_read(struct io_device *dev, u8 *buf, u64 bufsize, __unused u64 o
 }
 
 static u64 pipe_write(struct io_device *dev, u8 *buf, u64 bufsize, __unused u64 offset) {
-	int index = (int)(u64) dev->userdata;
-	struct pipe *pipe = &_pipes[index];
+	struct pipe *pipe = (struct pipe*) dev;
 	u64 bytes_free = PAGE_SIZE - pipe->size;
 	u64 bytes = bytes_free <= bufsize ? bytes_free : bufsize;
 
@@ -70,23 +31,21 @@ static u64 pipe_write(struct io_device *dev, u8 *buf, u64 bufsize, __unused u64 
 }
 
 static void pipe_close(struct io_device *dev) {
-	int index = (int)(u64) dev->userdata;
-	pmm_free(_pipes[index].buffer, 1);
-	_pipes[index].position = 0;
-	_pipes[index].size = 0;
-	_pipes[index].buffer = NULL;
+	struct pipe *pipe = (struct pipe*) dev;
+	pmm_free(pipe->buffer, 1);
+	pipe->position = 0;
+	pipe->size = 0;
+	pipe->buffer = NULL;
 }
 
-struct io_device pipe_new(void) {
-	int index = first_free_pipe();
-	_pipes[index].position = 0;
-	_pipes[index].size = 0;
-	_pipes[index].buffer = pmm_alloc(1);
-
-	struct io_device dev;
-	dev.read = pipe_read;
-	dev.write = pipe_write;
-	dev.close = pipe_close;
-	dev.userdata = (void*)(u64) index;
-	return dev;
+struct pipe pipe_new(void) {
+	struct pipe pipe;
+	pipe.dev.read = pipe_read;
+	pipe.dev.write = pipe_write;
+	pipe.dev.close = pipe_close;
+	pipe.dev.userdata = NULL;
+	pipe.position = 0;
+	pipe.size = 0;
+	pipe.buffer = pmm_alloc(1);
+	return pipe;
 }
