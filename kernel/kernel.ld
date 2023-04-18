@@ -19,6 +19,8 @@ SECTIONS
 		*(.text .text.*);
 	} :text
 
+	PROVIDE(__etext = .);
+
 	. += CONSTANT(MAXPAGESIZE);
 
 	.limine_reqs : {

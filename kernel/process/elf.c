@@ -71,6 +71,17 @@ struct elf64_shdr {
 	u64 sh_entsize;
 };
 
+struct elf64_symbol {
+	u32 sym_name;
+	u8 sym_info;
+	u8 sym_other;
+	u16 sym_shndx;
+	u64 sym_value;
+	u64 sym_size;
+};
+
+static_assert(sizeof(struct elf64_symbol) == 24, "");
+
 __unused static void print_sections(u8 *elf) {
 	struct elf_header *header = (struct elf_header*) elf;
 	struct elf64_shdr *shstrtab = (void*) elf + (header->shdr_offset + header->shstrndx * header->shdr_size);
@@ -80,6 +91,21 @@ __unused static void print_sections(u8 *elf) {
 		struct elf64_shdr *shdr = (void*) elf + (header->shdr_offset + i * header->shdr_size);
 		kprintf("%s\n", &names[shdr->sh_name]);
 	}
+}
+
+static struct elf64_shdr *find_section(u8 *elf, const char *section) {
+	struct elf_header *header = (struct elf_header*) elf;
+	struct elf64_shdr *shstrtab = (void*) elf + (header->shdr_offset + header->shstrndx * header->shdr_size);
+	char *names = (void*) elf + shstrtab->sh_offset;
+
+	for (int i = 0; i < header->shdr_count; i++) {
+		struct elf64_shdr *shdr = (void*) elf + (header->shdr_offset + i * header->shdr_size);
+		if (strcmp(&names[shdr->sh_name], section) == 0) {
+			return shdr;
+		}
+	}
+
+	return NULL;
 }
 
 __unused static void print_segments(u8 *elf) {
@@ -163,4 +189,48 @@ int elf_load(u8 *elf, pagedir_t **pagedir, u64 *entry) {
 	*entry = header->entry;
 
 	return ELF_OK;
+}
+
+static u8 *kernel_elf = NULL;
+static u64 kernel_elf_size = 0;
+static struct elf64_shdr *kernel_symtab = NULL;
+static struct elf64_shdr *kernel_strtab = NULL;
+
+void elf_set_kernel_info(struct boot_info *boot_info) {
+	kernel_elf = boot_info->kernel_file->addr;
+	kernel_elf_size = boot_info->kernel_file->size;
+
+	kernel_symtab = find_section(kernel_elf, ".symtab");
+	kernel_strtab = find_section(kernel_elf, ".strtab");
+}
+
+const char *elf_get_kernel_symbol(void *addr) {
+	extern char __etext;
+
+	if (kernel_symtab == NULL || kernel_strtab == NULL) {
+		return "";
+	}
+
+	const char *names = (void*) kernel_elf + kernel_strtab->sh_offset;
+	struct elf64_symbol *symbols = (void*) kernel_elf + kernel_symtab->sh_offset;
+
+	u64 best_match = 0;
+	int n_entries = kernel_symtab->sh_size / kernel_symtab->sh_entsize;
+	for (int i = 0; i < n_entries; i++) {
+		struct elf64_symbol *sym = &symbols[i];
+
+		bool in_text_section = sym->sym_value >= 0xffffffff80000000UL && sym->sym_value < (u64) &__etext;
+		if (sym->sym_size == 0 && in_text_section) {
+			if ((u64) addr - sym->sym_value < (u64) addr - symbols[best_match].sym_value) {
+				best_match = i;
+			}
+			continue;
+		}
+
+		if (sym->sym_value <= (u64) addr && sym->sym_value + sym->sym_size >= (u64) addr) {
+			return &names[sym->sym_name];
+		}
+	}
+
+	return best_match == 0 ? "" : &names[symbols[best_match].sym_name];
 }

@@ -35,6 +35,12 @@ static struct limine_framebuffer_request framebuffer_req = {
 	.response = NULL,
 };
 
+static struct limine_kernel_file_request kernel_req = {
+	.id = LIMINE_KERNEL_FILE_REQUEST,
+	.revision = 0,
+	.response = NULL,
+};
+
 static struct limine_module_request module_req = {
 	.id = LIMINE_MODULE_REQUEST,
 	.revision = 0,
@@ -61,6 +67,7 @@ static void *request[] = {
 	&rsdp_req,
 	&terminal_req,
 	&framebuffer_req,
+	&kernel_req,
 	&module_req,
 	&efi_req,
 	&smp_req,
@@ -134,6 +141,9 @@ void _start(void) {
 	struct limine_kernel_address_response *base_addr_info = kerneladdr_req.response;
 	assert(base_addr_info != NULL, "No base address info available!\n");
 
+	struct limine_kernel_file_response *kernel_info = kernel_req.response;
+	assert(kernel_info != NULL, "No kernel file info available!\n");
+
 	struct limine_module_response *module_info = module_req.response;
 	assert(module_info != NULL, "No kernel module info available!\n");
 
@@ -168,6 +178,8 @@ void _start(void) {
 
 	boot_info.module_info.module_count = module_info->module_count;
 	boot_info.module_info.modules      = (struct kernel_module**) module_info->modules;
+
+	boot_info.kernel_file = (struct kernel_module*) kernel_info->kernel_file;
 
 	kmain(&boot_info);
 

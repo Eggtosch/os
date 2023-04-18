@@ -89,6 +89,8 @@ struct boot_info {
 			struct uuid part_uuid;
 		} **modules;
 	} module_info;
+
+	struct kernel_module *kernel_file;
 };
 
 struct boot_info *boot_info_get(void);

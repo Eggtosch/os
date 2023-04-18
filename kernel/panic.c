@@ -2,6 +2,7 @@
 #include <io/stdio.h>
 #include <boot/boot_info.h>
 #include <memory/vmm.h>
+#include <process/elf.h>
 
 static u64 panic_write_fb(struct io_device *dev, u8 *buf, u64 buflen, __unused u64 offset) {
 	struct boot_info *boot_info = dev->userdata;
@@ -9,7 +10,27 @@ static u64 panic_write_fb(struct io_device *dev, u8 *buf, u64 buflen, __unused u
 	return buflen;
 }
 
-__attribute__((noreturn)) void _panic(const char *file, const char *function, int line, const char *fmt, ...) {
+static void print_backtrace(struct io_device *fb_dev) {
+	u64 *rbp;
+	asm volatile("mov %%rbp, %0" : "=a"(rbp));
+
+	int i = 0;
+	while (*rbp != 0) {
+		void *p = (void*) rbp[1];
+		if (p == NULL) {
+			break;
+		}
+
+		const char *symbol = elf_get_kernel_symbol(p);
+
+		printf(" [%d] %p: %s\n", i, p, symbol);
+		fprintf(fb_dev, " [%d] %p: %s\n", i, p, symbol);
+		rbp = (u64*) *rbp;
+		i++;
+	}
+}
+
+__attribute__((noreturn)) void panic(const char *fmt, ...) {
 	vmm_set_pagedir(NULL);
 
 	va_list args, fb_args;
@@ -20,8 +41,8 @@ __attribute__((noreturn)) void _panic(const char *file, const char *function, in
 
 	asm volatile("cli");
 
-	printf("[%s:%s:%d] Kernel panic: ", file, function, line);
-	fprintf(&fb_dev, "[%s:%s:%d] Kernel panic: ", file, function, line);
+	printf("---------- Kernel panic ----------\n");
+	fprintf(&fb_dev, "---------- Kernel panic ----------\n");
 	vprintf(fmt, args);
 	vfprintf(&fb_dev, fmt, fb_args);
 	printf("\n");
@@ -29,6 +50,8 @@ __attribute__((noreturn)) void _panic(const char *file, const char *function, in
 
 	va_end(args);
 	va_end(fb_args);
+
+	print_backtrace(&fb_dev);
 
 	while (1) {
 		asm volatile("hlt");

@@ -20,6 +20,7 @@
 #include <driver/driver.h>
 #include <driver/util.h>
 
+#include <process/elf.h>
 #include <process/process.h>
 #include <process/scheduler.h>
 
@@ -38,6 +39,8 @@ void kmain(struct boot_info *boot_info) {
 	kprintf("collected boot information\n");
 	kprintf("booted with %s\n", efi_supported() ? "uefi" : "bios");
 	kprintf("initialized early stdio output (serial device)\n");
+
+	elf_set_kernel_info(boot_info);
 
 	pmm_init(boot_info);
 	vmm_init();

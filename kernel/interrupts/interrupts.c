@@ -2,7 +2,7 @@
 #include <interrupts/idt.h>
 #include <interrupts/lapic.h>
 #include <interrupts/ioapic.h>
-
+#include <io/stdio.h>
 #include <panic.h>
 
 static const char *exception_names[] = {
@@ -55,16 +55,18 @@ u64 interrupt_handler(u64 rsp) {
 	u32 error_code = cpu_state->error_code;
 
 	if (isr_num < 32) {
+		char buf[200];
 		if (isr_num == 0xe) {
 			u64 cr2;
 			asm volatile("mov %%cr2, %0" : "=r"(cr2) :: "memory");
-			kprintf("fault address: %p, error code: %#x\n", cr2, error_code);
+			snprintf(buf, sizeof(buf), "fault address: %p, error code: %#x", cr2, error_code);
 		} else if (isr_num == 0xd) {
 			u64 gs;
 			asm volatile("mov %%gs, %0" : "=r"(gs) :: "memory");
-			kprintf("gs: %#x\n", gs);
+			snprintf(buf, sizeof(buf), "gs: %#x", gs);
 		}
-		panic("irq %d -> %s(%#x)\nInstruction: %p\n", isr_num, exception_names[isr_num], error_code, cpu_state->rip);
+		const char *exc_name = exception_names[isr_num];
+		panic("%s\nirq %d -> %s(%#x)\nInstruction: %p", buf, isr_num, exc_name, error_code, cpu_state->rip);
 	}
 
 	if (isr_functions[isr_num] != NULL) {
