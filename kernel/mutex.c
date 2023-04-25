@@ -6,8 +6,13 @@ void mutex_init(mutex_t *m) {
 
 // Busy loop until the mutex can be acquired.
 void mutex_lock(mutex_t *m) {
-	while (__atomic_test_and_set(m, __ATOMIC_ACQUIRE)) {
-		asm volatile("pause" ::: "memory");
+	while (1) {
+		if (mutex_trylock(m)) {
+			break;
+		}
+		while (__atomic_load_n((bool*) m, __ATOMIC_RELAXED)) {
+			asm volatile("pause" ::: "memory");
+		}
 	}
 }
 
