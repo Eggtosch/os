@@ -16,8 +16,7 @@ struct process {
 	struct pipe write_pipe;
 };
 
-// u64
-typedef u64 pid_t;
+typedef i64 pid_t;
 
 void process_init(struct boot_info *boot_info);
 void process_start_init(const char *name);

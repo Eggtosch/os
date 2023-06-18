@@ -10,10 +10,9 @@
 #include <panic.h>
 #include <io/stdio.h>
 
-#define MAX_PROCESSES (1000)
+#define MAX_PROCESSES (100)
 
 static struct process _processes[MAX_PROCESSES];
-static pid_t _current_process = 0;
 
 static struct module_info *_module_info;
 
@@ -107,7 +106,7 @@ pid_t process_create(const char *name) {
 }
 
 void process_destroy(pid_t pid) {
-	if (pid >= MAX_PROCESSES) {
+	if (pid < 0 || pid >= MAX_PROCESSES) {
 		return;
 	}
 
@@ -128,7 +127,7 @@ void process_destroy(pid_t pid) {
 }
 
 struct process *process_get(pid_t pid) {
-	if (pid >= MAX_PROCESSES) {
+	if (pid < 0 || pid >= MAX_PROCESSES) {
 		return NULL;
 	}
 
