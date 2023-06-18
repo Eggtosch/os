@@ -4,29 +4,36 @@
 #include <string.h>
 #include <common.h>
 
+static struct limine_stack_size_request kernelstack_req = {
+	.id = LIMINE_STACK_SIZE_REQUEST,
+	.revision = 0,
+	.response = NULL,
+	.stack_size = KERNEL_TASK_STACK_SIZE,
+};
+
 static struct limine_kernel_address_request kerneladdr_req = {
 	.id = LIMINE_KERNEL_ADDRESS_REQUEST,
 	.revision = 0,
-	.response = NULL
+	.response = NULL,
 };
 
 static struct limine_memmap_request memmap_req = {
 	.id = LIMINE_MEMMAP_REQUEST,
 	.revision = 0,
-	.response = NULL
+	.response = NULL,
 };
 
 static struct limine_rsdp_request rsdp_req = {
 	.id = LIMINE_RSDP_REQUEST,
 	.revision = 0,
-	.response = NULL
+	.response = NULL,
 };
 
 static struct limine_terminal_request terminal_req = {
 	.id = LIMINE_TERMINAL_REQUEST,
 	.revision = 0,
 	.response = NULL,
-	.callback = NULL
+	.callback = NULL,
 };
 
 static struct limine_framebuffer_request framebuffer_req = {
@@ -44,7 +51,7 @@ static struct limine_kernel_file_request kernel_req = {
 static struct limine_module_request module_req = {
 	.id = LIMINE_MODULE_REQUEST,
 	.revision = 0,
-	.response = NULL
+	.response = NULL,
 };
 
 static struct limine_efi_system_table_request efi_req = {
@@ -62,6 +69,7 @@ static struct limine_smp_request smp_req = {
 
 __attribute__((section(".limine_reqs"), used))
 static void *request[] = {
+	&kernelstack_req,
 	&kerneladdr_req,
 	&memmap_req,
 	&rsdp_req,

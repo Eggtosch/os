@@ -39,6 +39,8 @@ typedef _Bool bool;
 #define ARRAY_LEN(a) (sizeof(a) / sizeof(a[0]))
 #define abs(x) ((x) >= 0 ? (x) : (-x))
 
+#define KERNEL_TASK_STACK_PAGES 16
+#define KERNEL_TASK_STACK_SIZE  (KERNEL_TASK_STACK_PAGES * PAGE_SIZE)
 #define PAGE_SIZE 0x1000
 
 #define ALIGNUP_PAGE(val) ((val + (PAGE_SIZE - 1)) / PAGE_SIZE * PAGE_SIZE)
