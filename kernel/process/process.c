@@ -133,7 +133,3 @@ struct process *process_get(pid_t pid) {
 
 	return &_processes[pid];
 }
-
-pid_t process_current(void) {
-	return _current_process;
-}

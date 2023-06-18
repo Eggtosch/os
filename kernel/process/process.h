@@ -24,4 +24,3 @@ pid_t process_create(const char *name);
 void process_destroy(pid_t pid);
 
 struct process *process_get(pid_t pid);
-pid_t process_current(void);

@@ -59,8 +59,8 @@ static void sys_exec(struct cpu_state *cpu_state) {
 
 static void sys_exit(struct cpu_state *cpu_state) {
 	(void) cpu_state;
-	process_destroy(process_current());
-	kloop();
+	//process_destroy(process_current());
+	//kloop();
 }
 
 static void sys_clock_time(struct cpu_state *cpu_state) {
