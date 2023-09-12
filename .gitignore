@@ -3,6 +3,8 @@
 compile_commands.json
 
 # binaries and auto generated
+**/*.o
+**/*.d
 **/.bin/**/*
 bin/**/*
 libc/bin/**/*
