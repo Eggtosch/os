@@ -6,7 +6,7 @@ BOOT_FILES     := bin/kernel.elf					\
 					limine/limine.sys				\
 					limine/limine-cd.bin			\
 					limine/limine-cd-efi.bin
-INIT_PROGRAM   := bin/init.elf
+INIT_PROGRAM   := bin/init
 
 BINDIR    := bin
 

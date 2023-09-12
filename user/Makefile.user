@@ -1,0 +1,56 @@
+CC      := ../cross-compiler/bin/x86_64-elf-gcc
+LD      := ../cross-compiler/bin/x86_64-elf-ld
+
+COMMON_CFLAGS =								\
+	-I../libc/include/ -nostdinc			\
+	-ffreestanding -fno-stack-protector		\
+	-mno-80387 -mno-mmx -mno-3dnow -mno-sse	\
+	-mno-sse2								\
+	-MMD -MP
+
+COMMON_LDFLAGS =							\
+	-Tuser.ld								\
+	-nostdlib								\
+	-zmax-page-size=0x1000					\
+	-static -L../libc/bin -lc
+
+BINDIR := ../bin
+
+ifndef M
+$(error M is not set, set M to the directory to build)
+endif
+
+# needs to specify TARGET and CFILES
+# can optionally specify ASMFILES, CFLAGS and LDFLAGS
+M_PWD=$(realpath $(M))
+include $(M)/Makefile
+
+TARGET := $(BINDIR)/$(TARGET)
+CFILES := $(patsubst %,$(M_PWD)/%,$(CFILES))
+ASMFILES := $(patsubst %,$(M_PWD)/%,$(ASMFILES))
+
+ASMOBJS      := $(ASMFILES:%.asm=%.o)
+TARGET_OBJS  := $(CFILES:%.c=%.o)
+TARGET_OBJS  += $(ASMOBJS)
+
+HEADER_DEPS  := $(CFILES:%.c=%.d)
+
+.PHONY: all
+all: $(TARGET)
+
+$(TARGET): $(TARGET_OBJS)
+	@$(LD) $(TARGET_OBJS) $(COMMON_LDFLAGS) $(LDFLAGS) -o $@
+	@echo ld $(TARGET_OBJS) $(LDFLAGS) -o $@
+
+%.o: %.asm
+	nasm -f elf64 $< -o $@
+
+-include $(HEADER_DEPS)
+%.o: %.c
+	@$(CC) $(COMMON_CFLAGS) $(CFLAGS) -c $< -o $@
+	@echo gcc $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(M)/**/*.o
+	rm -f $(M)/**/*.d
+	rm -f $(TARGET)

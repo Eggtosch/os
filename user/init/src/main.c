@@ -20,4 +20,5 @@ void _start(const char *program, u64 progsize) {
 	sys_fb_write(100, 100, 100, 100, f);
 
 	sys_exit();
+	while (1);
 }

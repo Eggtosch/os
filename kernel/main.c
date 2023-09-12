@@ -69,7 +69,7 @@ void kmain(struct boot_info *boot_info) {
 	}
 
 	process_init(boot_info);
-	process_start_init("/modules/init.elf");
+	process_start_init("/modules/init");
 	scheduler_enable(true);
 
 	kloop();

@@ -1,18 +1,10 @@
-PROGRAMS := $(wildcard *.user)
-PROGRAMS_CLEAN := $(PROGRAMS:%=%-clean)
+PROGRAMS := $(shell find . -mindepth 1 -maxdepth 1 -type d)
 
-BINDIR := ../../bin
-
-.PHONY: all clean-all $(PROGRAMS) $(PROGRAMS_CLEAN)
-
+.PHONY: all $(PROGRAMS)
 all: $(PROGRAMS)
-clean-all: $(PROGRAMS_CLEAN)
 
 $(PROGRAMS):
-	$(eval TARGET := $(BINDIR)/$(patsubst %.user,%.elf,$@))
-	$(MAKE) -C $@ TARGET=$(TARGET)
+	make --no-print-directory -f Makefile.user M=$@
 
-$(PROGRAMS_CLEAN):
-	$(eval DIR    := $(patsubst %-clean,%,$@))
-	$(eval TARGET := $(BINDIR)/$(patsubst %.user,%.elf,$@))
-	$(MAKE) --no-print-directory -C $(DIR) clean TARGET=$(TARGET)
+$(PROGRAMS)-clean:
+	make --no-print-directory -f Makefile.user M=$(patsubst %-clean,%,$@) clean
