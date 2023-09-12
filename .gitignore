@@ -3,12 +3,12 @@
 compile_commands.json
 
 # binaries and auto generated
-**/*.o
-**/*.d
-**/.bin/**/*
-bin/**/*
-libc/bin/**/*
-cross-compiler/**/*
-fs/**/*
-limine/**/*
-log/**/*
+*.o
+*.d
+.bin/
+bin/
+libc/bin/
+cross-compiler/
+fs/
+limine/
+log/
