@@ -72,17 +72,19 @@ user: | $(BINDIR)
 fonts:
 	./scripts/gen_font_bitmap.rb fonts/ kernel/console/font.gen.h
 
+QEMU_OPTS := -smp 4 -serial stdio -s -drive format=raw,file=$(ISO) -vga virtio
+
 .PHONY: run
 run: build
-	qemu-system-x86_64 -enable-kvm -smp 4 -serial stdio -s -drive format=raw,file=$(ISO)
+	qemu-system-x86_64 -enable-kvm $(QEMU_OPTS)
 
 .PHONY: run-dbg
 run-dbg: build
-	qemu-system-x86_64 -serial stdio -s -S -drive format=raw,file=$(ISO)
+	qemu-system-x86_64 -S $(QEMU_OPTS)
 
 .PHONY: run-uefi
 run-uefi: build
-	qemu-system-x86_64 -enable-kvm -bios $(QEMU_UEFI) -serial stdio -s -drive format=raw,file=$(ISO)
+	qemu-system-x86_64 -enable-kvm -bios $(QEMU_UEFI) $(QEMU_OPTS)
 
 .PHONY: install
 install: build
