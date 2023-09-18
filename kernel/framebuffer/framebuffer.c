@@ -2,67 +2,30 @@
 #include <io/io.h>
 #include <cpu/cpu.h>
 #include <memory/pmm.h>
-
-#define PIXEL_CHANGED ((u64) 1 << 31)
+#include <memory/vmm.h>
+#include <string.h>
 
 static struct fb_info _fb_info;
 
-static bool mtrr_range_overlap(u64 base1, u64 mask1, u64 base2, u64 size2) {
-	base1 &= ~0xfff;
-	mask1 &= ~0xfff;
-
-	for (u64 i = base2; i < size2; i += 4096) {
-		if ((i & mask1) == (base1 & mask1))
-			return true;
+static bool remap_framebuffer(void) {
+	void *virt_addr = pmm_highest_memmap_addr();
+	u64 phys_fb_addr = pmm_framebuffer_addr();
+	u64 size = _fb_info.fb_pitch * _fb_info.fb_height * sizeof(u32);
+	if (phys_fb_addr == 0) {
+		return false;
 	}
 
-	return false;
-}
+	u64 pat_msr = rdmsr(MSR_PAT);
+	pat_msr |= (1UL << 32);
+	pat_msr &= ~(1UL << 33);
+	pat_msr &= ~(1UL << 34);
+	wrmsr(MSR_PAT, pat_msr);
 
-static u64 alignup_power2(u64 value, u64 align) {
-	for (u64 aligned = align;; aligned *= 2) {
-		if (aligned >= value) {
-			value = aligned;
-			break;
-		}
-	}
-	return value;
-}
+	vmm_map_existing(NULL, virt_addr, phys_fb_addr, size);
+	_fb_info.fb_addr = virt_addr;
+	vmm_set_wc(NULL, virt_addr, size);
 
-static u64 enable_mtrr(u32 *addr, u64 pitch, u64 height) {
-	u64 ia32_mtrrcap = rdmsr(MSR_MTRR_CAP);
-	if (!(ia32_mtrrcap & (1 << 10))) {
-		return 1;
-	}
-
-	u32 eax, ebx, ecx, edx;
-	if (!cpuid(0x80000008, 0, &eax, &ebx, &ecx, &edx))
-		return 1;
-
-	u8 max_phys_addr = eax & 0xff;
-	u64 base = pmm_to_phys(addr);
-	u64 size = alignup_power2(pitch * height, PAGE_SIZE);
-	u64 mask = (((u64) 1 << max_phys_addr) - 1) & ~(size - 1);
-
-	u8 nregs = ia32_mtrrcap & 0xff;
-	for (u32 i = 0; i < nregs; i++) {
-		u64 mtrrbase = rdmsr(MSR_MTRR_PHYS_BASE_0 + i * 2);
-		u64 mtrrmask = rdmsr(MSR_MTRR_PHYS_BASE_0 + i * 2 + 1);
-		if (mtrr_range_overlap(mtrrbase, mtrrmask, base, size)) {
-			return 1;
-		}
-	}
-
-	for (u8 i = 0; i < nregs; i++) {
-		if (rdmsr(MSR_MTRR_PHYS_BASE_0 + i * 2 + 1) & (1 << 11))
-			continue;
-
-		wrmsr(MSR_MTRR_PHYS_BASE_0 + i * 2,     base | 0x1);
-		wrmsr(MSR_MTRR_PHYS_BASE_0 + i * 2 + 1, mask | (1 << 11));
-		return 0;
-	}
-
-	return 1;
+	return true;
 }
 
 static bool fb_in_range(struct fb_info *fb_info, u16 x, u16 y, u16 width, u16 height) {
@@ -72,11 +35,13 @@ static bool fb_in_range(struct fb_info *fb_info, u16 x, u16 y, u16 width, u16 he
 
 void framebuffer_init(struct boot_info *boot_info) {
 	_fb_info = boot_info->fb_info;
-	_fb_info.fb_pitch /= 4;
+	_fb_info.fb_pitch /= sizeof(u32);
 
-	u64 error = enable_mtrr(_fb_info.fb_addr, _fb_info.fb_pitch, _fb_info.fb_height);
-	kprintf("initialized linear framebuffer: %dx%d (32 bpp, ARGB format)\n", _fb_info.fb_width, _fb_info.fb_height);
-	kprintf("framebuffer mtrr write combining %ssupported\n", error ? "un" : "");
+	kprintf("initialized framebuffer: %dx%d (32 bpp, ARGB format)\n", _fb_info.fb_width, _fb_info.fb_height);
+
+	if (remap_framebuffer()) {
+		kprintf("framebuffer vmm write combining enabled\n");
+	}
 }
 
 i64 framebuffer_read(u16 x, u16 y, u16 width, u16 height, u32 *buffer) {
@@ -87,10 +52,8 @@ i64 framebuffer_read(u16 x, u16 y, u16 width, u16 height, u32 *buffer) {
 	u32 *src = _fb_info.fb_addr + (y * _fb_info.fb_pitch) + x;
 	u32 *dst = (u32*) buffer;
 	for (u64 _y = 0; _y < height; _y++) {
-		for (u64 _x = 0; _x < width; _x++) {
-			*dst = src[x];
-			dst++;
-		}
+		memcpy(dst, src, width * sizeof(u32));
+		dst += width;
 		src += _fb_info.fb_pitch;
 	}
 
@@ -106,13 +69,8 @@ i64 framebuffer_write(u16 x, u16 y, u16 width, u16 height, u32 *buffer) {
 	u32 *src = (u32*) buffer;
 
 	for (u64 _y = 0; _y < height; _y++) {
-		for (u64 _x = 0; _x < width; _x++) {
-			if (*src & PIXEL_CHANGED) {
-				*src &= ~PIXEL_CHANGED;
-				dst[_x] = *src;
-			}
-			src++;
-		}
+		memcpy(dst, src, width * sizeof(u32));
+		src += width;
 		dst += _fb_info.fb_pitch;
 	}
 

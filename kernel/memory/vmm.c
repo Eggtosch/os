@@ -160,6 +160,31 @@ void vmm_pagedir_destroy(pagedir_t *pagedir) {
 	destroy_pd4(pagedir);
 }
 
+void vmm_set_wc(pagedir_t *pagedir, void *virt_addr, u64 size) {
+	if (pagedir == NULL) {
+		pagedir = vmm_get_pagedir();
+	}
+
+	u64 pages = get_num_of_pages(size);
+	for (u64 i = 0; i < pages; i++) {
+		u64 *entry = pd_entry(pagedir, virt_addr + i * PAGE_SIZE);
+		*entry |= (1 << 7); // enable PAT
+		asm volatile("invlpg (%0)" :: "r"(virt_addr + i * PAGE_SIZE));
+	}
+}
+
+void vmm_map_existing(pagedir_t *pagedir, void *virt_addr, u64 phys_addr, u64 size) {
+	if (pagedir == NULL) {
+		pagedir = vmm_get_pagedir();
+	}
+
+	u64 pages = get_num_of_pages(size);
+	for (u64 i = 0; i < pages; i++) {
+		u64 page = phys_addr + i * PAGE_SIZE;
+		vmm_map_page(pagedir, page, virt_addr + i * PAGE_SIZE);
+	}
+}
+
 void vmm_map(pagedir_t *pagedir, void *virt_addr, u64 size) {
 	if (pagedir == NULL) {
 		pagedir = vmm_get_pagedir();

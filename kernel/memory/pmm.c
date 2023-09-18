@@ -225,3 +225,34 @@ void *pmm_to_virt(u64 paddr) {
 	}
 	return vaddr + VIRTUAL_ADDR_OFFSET;
 }
+
+void *pmm_highest_memmap_addr(void) {
+	u64 highest = 0;
+	for (u64 i = 0; i < _mem_info->mem_entries; i++) {
+		struct mem_entry *entry = _mem_info->mem_map[i];
+		u64 addr = (u64) entry->mem_base + entry->mem_length;
+		if (addr > highest) {
+			highest = addr;
+		}
+	}
+
+	if (highest <= 0xffffffffUL) {
+		highest = 0x100000000UL;
+	}
+
+	highest |= 0x7fffffffUL;
+	highest += 1;
+
+	return (void*) (highest + VIRTUAL_ADDR_OFFSET);
+}
+
+u64 pmm_framebuffer_addr(void) {
+	for (u64 i = 0; i < _mem_info->mem_entries; i++) {
+		struct mem_entry *entry = _mem_info->mem_map[i];
+		if (entry->mem_type == MEM_FRAMEBUFFER) {
+			return (u64) entry->mem_base;
+		}
+	}
+
+	return 0;
+}
