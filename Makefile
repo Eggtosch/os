@@ -68,10 +68,6 @@ libc: | $(BINDIR)
 user: | $(BINDIR)
 	$(MAKE) --no-print-directory -C user all -j$(nproc)
 
-.PHONY: fonts
-fonts:
-	./scripts/gen_font_bitmap.rb fonts/ kernel/console/font.gen.h
-
 QEMU_OPTS := -smp 4 -serial stdio -s -drive format=raw,file=$(ISO) -vga virtio
 
 .PHONY: run
