@@ -1,4 +1,5 @@
 #!/bin/bash
+# ./install.sh <base-dir> <iso-file> <install-device> <logfile-location>
 
 olddir=$(pwd)
 basedir=$(dirname $(readlink -f "$0"))
@@ -7,6 +8,8 @@ cd $basedir
 
 base=$1
 iso=$base/$2
+
+# if absolute path
 if [[ $3 == /* ]]; then
 	dev=$3
 else

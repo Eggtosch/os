@@ -28,6 +28,8 @@ tar -xf gcc-12.2.0.tar.xz
 mkdir -p build-gcc
 cd build-gcc
 
+# build without libgcc red zone
+# https://wiki.osdev.org/Libgcc_without_red_zone
 X86_CONF_FILE=../gcc-12.2.0/gcc/config/i386/t-x86_64-elf
 touch $X86_CONF_FILE
 echo "MULTILIB_OPTIONS += mno-red-zone" >> $X86_CONF_FILE
