@@ -24,3 +24,23 @@ Optionally the following variables can be defined:
 Relative paths are allowed in `CFILES` and `ASMFILES` variables.
 They are substituted by their absolute path equivalents.
 Paths in the `CFLAGS` and `LDFLAGS` should be absolute, the `M_PWD` variable holds the absolute path of the toplevel directory of the userspace application.
+
+## Documentation
+
+All functions should be documented so clangd can display this documentation in neovim.
+An example documented function is shown following:
+```c
+/*
+ * copy bytes from one memory location to another.
+ * dst: destination address.
+ * src: source address.
+ * bytes: number of bytes to copy.
+ * return: destination address.
+ */
+void *memcpy(void *dst, void *src, u64 bytes);
+```
+
+The first line should contain a short description of what the function does.
+The following lines should describe the parameters.
+The last line should describe the returned value.
+All lines must end with a . so the linebreaks are displayed in neovim.
