@@ -1,3 +1,5 @@
+# build $(M) target if M is specified,
+# else build all applications found directly in this directory
 ifdef M
 PROGRAMS := $(M)
 else
