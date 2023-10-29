@@ -51,7 +51,7 @@ __attribute__((noreturn)) void panic(const char *fmt, ...) {
 	va_end(args);
 	va_end(fb_args);
 
-	print_backtrace(&fb_dev);
+	//print_backtrace(&fb_dev);
 
 	while (1) {
 		asm volatile("hlt");

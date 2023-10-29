@@ -66,7 +66,8 @@ u64 interrupt_handler(u64 rsp) {
 			snprintf(buf, sizeof(buf), "gs: %#x", gs);
 		}
 		const char *exc_name = exception_names[isr_num];
-		panic("%s\nirq %d -> %s(%#x)\nInstruction: %p", buf, isr_num, exc_name, error_code, cpu_state->rip);
+		u8 cpu = apic_current_cpu();
+		panic("[cpu %d] %s\nirq %d -> %s(%#x)\nInstruction: %p", cpu, buf, isr_num, exc_name, error_code, cpu_state->rip);
 	}
 
 	if (isr_functions[isr_num] != NULL) {

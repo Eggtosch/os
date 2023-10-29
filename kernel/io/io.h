@@ -4,6 +4,7 @@
 
 #define MSR_APIC_BASE        0x1B
 #define MSR_PAT              0x277
+#define MSR_TSC_DEADLINE     0x6e0
 
 u8   io_inb(u16 port);
 u16  io_inw(u16 port);

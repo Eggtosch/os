@@ -1,5 +1,6 @@
 #include <boot/boot_info.h>
 
+#include <mutex.h>
 #include <io/stdio.h>
 
 #include <memory/pmm.h>
@@ -7,6 +8,7 @@
 
 #include <framebuffer/framebuffer.h>
 
+#include <interrupts/lapic.h>
 #include <cpu/cpu.h>
 #include <acpi/acpi.h>
 
@@ -27,13 +29,22 @@
 #include <panic.h>
 
 static void f(__unused struct smp_cpu *cpu) {
-	asm("hlt");
+	apic_init(cpu->lapic_id);
+	idt_init();
+	syscall_init(boot_info_get());
+	scheduler_start();
+
+	kloop();
 }
 
 extern driver_init_t __start_driver_init[];
 extern driver_init_t __stop_driver_init[];
 
+static mutex_t kprintf_lock;
+
 void kmain(struct boot_info *boot_info) {
+	mutex_init(&kprintf_lock);
+
 	efi_functions_init(boot_info);
 	stdio_init(serial_io_device_get());
 	kprintf("collected boot information\n");
@@ -48,6 +59,7 @@ void kmain(struct boot_info *boot_info) {
 	framebuffer_init(boot_info);
 
 	cpu_init(boot_info);
+	apic_check_features();
 	acpi_init(boot_info);
 
 	vfs_init();
@@ -70,7 +82,7 @@ void kmain(struct boot_info *boot_info) {
 
 	process_init(boot_info);
 	process_start_init("/modules/init");
-	scheduler_enable(true);
+	scheduler_start();
 
 	kloop();
 }
@@ -88,6 +100,8 @@ void kloop(void) {
 }
 
 void kprintf(const char *fmt, ...) {
+	mutex_lock(&kprintf_lock);
+
 	i64 secs = time_since_boot();
 	u64 ns = time_current_ns();
 
@@ -101,4 +115,6 @@ void kprintf(const char *fmt, ...) {
 	len = vsnprintf(buf, sizeof(buf), fmt, args);
 	boot_info->fb_print(buf, len);
 	va_end(args);
+
+	mutex_unlock(&kprintf_lock);
 }

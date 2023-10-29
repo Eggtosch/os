@@ -29,8 +29,6 @@
 static void *hpet = NULL;
 static u64 precision_ns;
 
-static u64 timern_timeout[2];
-
 static u64 read_word(u64 offset) {
 	return *(volatile u64*) (hpet + offset);
 }
@@ -54,7 +52,7 @@ static u64 time_to_comparator(u64 time, u64 unit) {
 
 static void init_timers(void) {
 	for (int n = 0; n < 2; n++) {
-		write_word(HPET_TIMERN_COMPARATOR(n), timern_timeout[n]);
+		write_word(HPET_TIMERN_COMPARATOR(n), n == 0 ? 0 : time_to_comparator(1, SECONDS));
 		u64 config = read_word(HPET_TIMERN_CONFIG(n));
 		config |= TIMERN_ENABLE;
 		write_word(HPET_TIMERN_CONFIG(n), config);
@@ -65,9 +63,6 @@ void hpet_register(u64 addr) {
 	kprintf("register time source: hpet\n");
 
 	hpet = (struct hpet*) pmm_to_virt(addr);
-
-	timern_timeout[0] = time_to_comparator(250, MILLISECONDS);
-	timern_timeout[1] = time_to_comparator(1, SECONDS);
 
 	init_timers();
 
@@ -82,14 +77,21 @@ void hpet_register(u64 addr) {
 	kprintf("hpet: %d timers, %u ns precision\n", ntimers, precision_ns);
 }
 
-void hpet_next_timeout(int timern) {
-	if (timern < 0 || timern > 1) {
-		return;
+void hpet_delay_us(u64 us) {
+	u64 end = read_word(HPET_COUNTER) + time_to_comparator(us, MICROSECONDS);
+	while (read_word(HPET_COUNTER) <= end) {
+		asm("pause");
 	}
+}
 
-	u64 comparator = read_word(HPET_TIMERN_COMPARATOR(timern));
-	comparator += timern_timeout[timern];
-	write_word(HPET_TIMERN_COMPARATOR(timern), comparator);
+void hpet_delay_ms(u64 ms) {
+	hpet_delay_us(ms * 1000);
+}
+
+void hpet_next_timeout(void) {
+	u64 comparator = read_word(HPET_TIMERN_COMPARATOR(1));
+	comparator += time_to_comparator(1, SECONDS);
+	write_word(HPET_TIMERN_COMPARATOR(1), comparator);
 }
 
 u64 hpet_precision_ns(void) {

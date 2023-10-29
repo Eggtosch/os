@@ -130,7 +130,7 @@ void ioapic_set_irq_override(u8 src_irq, u8 dst_irq, u16 flags) {
 	union ioapic_rentry rentry = { .raw = ioapic_read64(ioapic->addr, rentry_index(dst_irq)) };
 	rentry.mask = 1;
 	rentry.vector = src_irq + INT_BASE;
-	rentry.dest = apic_id();
+	rentry.dest = apic_ioirq_id();
 
 	u8 polarity = flags & 0x3;
 	if (polarity == 0b00 || polarity == 0b11) {

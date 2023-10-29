@@ -112,7 +112,7 @@ static void rtc_irq(__unused struct cpu_state *cpu_state) {
 		boot_time = time_from_struct(rtc_global_time);
 	}
 
-	hpet_next_timeout(HPET_TIMER_RTC);
+	hpet_next_timeout();
 }
 
 void time_init(void) {

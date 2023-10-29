@@ -68,11 +68,11 @@ libc: | $(BINDIR)
 user: | $(BINDIR)
 	$(MAKE) --no-print-directory -C user all -j$(nproc)
 
-QEMU_OPTS := -smp 4 -serial stdio -s -drive format=raw,file=$(ISO) -vga virtio
+QEMU_OPTS := -enable-kvm -smp 4 -serial stdio -s -drive format=raw,file=$(ISO) -vga virtio -cpu host
 
 .PHONY: run
 run: build
-	qemu-system-x86_64 -enable-kvm $(QEMU_OPTS)
+	qemu-system-x86_64 $(QEMU_OPTS)
 
 .PHONY: run-dbg
 run-dbg: build
@@ -80,7 +80,7 @@ run-dbg: build
 
 .PHONY: run-uefi
 run-uefi: build
-	qemu-system-x86_64 -enable-kvm -bios $(QEMU_UEFI) $(QEMU_OPTS)
+	qemu-system-x86_64 -bios $(QEMU_UEFI) $(QEMU_OPTS)
 
 .PHONY: install
 install: build

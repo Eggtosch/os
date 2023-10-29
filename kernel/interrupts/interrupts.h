@@ -39,6 +39,7 @@ typedef void (*isr_func)(struct cpu_state*);
 #define INT_SLAVE_IRQS (0x22)
 #define INT_RTC        (0x28)
 #define INT_SYSCALL    (0x80)
+#define INT_SCHED      (0x81)
 
 void interrupt_register(u8 isr_num, isr_func f, u32 int_type);
 void interrupt_enable(u8 isr_num, bool enable);

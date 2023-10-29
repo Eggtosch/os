@@ -2,6 +2,7 @@
 
 #include <syscall/gdt.h>
 #include <interrupts/interrupts.h>
+#include <interrupts/lapic.h>
 
 #include <vfs/vfs.h>
 
@@ -139,6 +140,7 @@ void syscall_init(struct boot_info *boot_info) {
 	gdt_init(boot_info->stack_addr);
 	interrupt_register(INT_SYSCALL, syscall_handle, INT_USER);
 
-	kprintf("initialized gdt\n");
-	kprintf("registered syscall interrupt at %#x\n", INT_SYSCALL);
+	if (apic_current_cpu() == 0) {
+		kprintf("registered syscall interrupt at %#x\n", INT_SYSCALL);
+	}
 }

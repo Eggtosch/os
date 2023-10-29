@@ -1,3 +1,4 @@
+#include <interrupts/lapic.h>
 #include <interrupts/idt.h>
 #include <interrupts/interrupts.h>
 
@@ -40,18 +41,18 @@ void idt_create_descriptor(u8 index, u8 type_and_attributes) {
 }
 
 void idt_init(void) {
-	for (u8 i = 0; i < 32; i++) {
-		idt_create_descriptor(i, 0x8e);
-	}
+	if (apic_current_cpu() == 0) {
+		for (u8 i = 0; i < 32; i++) {
+			idt_create_descriptor(i, 0x8e);
+		}
 
-	for (u16 i = 32; i < 256; i++) {
-		idt_create_descriptor((u8) i, 0x8e);
+		for (u16 i = 32; i < 256; i++) {
+			idt_create_descriptor((u8) i, 0x8e);
+		}
 	}
 
 	_idt_ptr.limit = sizeof(_idt) - 1;
 	_idt_ptr.base  = (u64) &_idt;
 
 	asm_load_idt(&_idt_ptr);
-
-	kprintf("initialized idt\n");
 }

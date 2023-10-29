@@ -8,29 +8,30 @@
 #define FLAGS_SPACE		(1 << 4)
 #define FLAGS_ZERO		(1 << 5)
 
-static u64 out(struct io_device *stream, char c) {
-	#define BUFLEN (1024)
-	static char _buf[BUFLEN];
-	static u64 _index = 0;
-	static u64 _written = 0;
+#define BUFLEN 1024
 
-	if (c == '\0' || _index >= BUFLEN) {
-		stream->write(stream, (u8*) _buf, _index, 0);
-		_index = 0;
+struct printf_state {
+	char buf[BUFLEN];
+	u64 index;
+	u64 written;
+};
+
+static u64 out(struct printf_state *s, struct io_device *stream, char c) {
+	if (c == '\0' || s->index >= BUFLEN) {
+		stream->write(stream, (u8*) s->buf, s->index, 0);
+		s->index = 0;
 		u64 ret = 0;
 		if (c == '\0') {
-			ret = _written;
-			_written = 0;
+			ret = s->written;
+			s->written = 0;
 		}
 		return ret;
 	}
 
-	_buf[_index] = c;
-	_index++;
-	_written++;
+	s->buf[s->index] = c;
+	s->index++;
+	s->written++;
 	return 0;
-
-	#undef BUFLEN
 }
 
 static bool is_digit(char c) {
@@ -46,7 +47,7 @@ static u64 atoi(const char **fmt) {
 	return i;
 }
 
-static void ntoa(struct io_device *stream, u64 value, bool negative, u64 base, u64 flags, u64 precision) {
+static void ntoa(struct printf_state *s, struct io_device *stream, u64 value, bool negative, u64 base, u64 flags, u64 precision) {
 	char tmp[64];
 	u64 len = 0;
 	do {
@@ -58,22 +59,22 @@ static void ntoa(struct io_device *stream, u64 value, bool negative, u64 base, u
 
 	bool sign = false;
 	if (negative) {
-		out(stream, '-');
+		out(s, stream, '-');
 		sign = true;
 	} else if (flags & FLAGS_PLUS) {
-		out(stream, '+');
+		out(s, stream, '+');
 		sign = true;
 	} else if (flags & FLAGS_SPACE) {
-		out(stream, ' ');
+		out(s, stream, ' ');
 		sign = true;
 	}
 
 	if (flags & FLAGS_HASH) {
-		out(stream, '0');
+		out(s, stream, '0');
 		if (base == 16) {
-			out(stream, flags & FLAGS_UPPERCASE ? 'X' : 'x');
+			out(s, stream, flags & FLAGS_UPPERCASE ? 'X' : 'x');
 		} else if (base == 2) {
-			out(stream, 'b');
+			out(s, stream, 'b');
 		}
 	}
 
@@ -81,16 +82,18 @@ static void ntoa(struct io_device *stream, u64 value, bool negative, u64 base, u
 		precision--;
 	}
 	while (len < precision) {
-		out(stream, (flags & FLAGS_ZERO) ? '0' : ' ');
+		out(s, stream, (flags & FLAGS_ZERO) ? '0' : ' ');
 		len++;
 	}
 	while (last_index >= 0) {
-		out(stream, tmp[last_index]);
+		out(s, stream, tmp[last_index]);
 		last_index--;
 	}
 }
 
 u64 vfprintf(struct io_device *stream, const char *fmt, va_list args) {
+	struct printf_state _s = {0};
+
 	if (stream == NULL || fmt == NULL) {
 		return 0;
 	}
@@ -100,7 +103,7 @@ u64 vfprintf(struct io_device *stream, const char *fmt, va_list args) {
 	while (*fmt) {
 
 		if (*fmt != '%') {
-			out(stream, *fmt);
+			out(&_s, stream, *fmt);
 			fmt++;
 			continue;
 		}
@@ -198,10 +201,10 @@ u64 vfprintf(struct io_device *stream, const char *fmt, va_list args) {
 
 				if (*fmt == 'i' || *fmt == 'd') {
 					i64 value = va_arg(args, i64);
-					ntoa(stream, value < 0 ? -value : value, value < 0, base, flags, precision);
+					ntoa(&_s, stream, value < 0 ? -value : value, value < 0, base, flags, precision);
 				} else {
 					u64 value = va_arg(args, u64);
-					ntoa(stream, value, false, base, flags, precision);
+					ntoa(&_s, stream, value, false, base, flags, precision);
 				}
 				fmt++;
 				break;
@@ -211,14 +214,14 @@ u64 vfprintf(struct io_device *stream, const char *fmt, va_list args) {
 				if (!(flags & FLAGS_LEFT)) {
 					while (l < precision) {
 						l++;
-						out(stream, ' ');
+						out(&_s, stream, ' ');
 					}
 				}
-				out(stream, (char) va_arg(args, i64));
+				out(&_s, stream, (char) va_arg(args, i64));
 				if (flags & FLAGS_LEFT) {
 					while (l < precision) {
 						l++;
-						out(stream, ' ');
+						out(&_s, stream, ' ');
 					}
 				}
 				fmt++;
@@ -231,17 +234,17 @@ u64 vfprintf(struct io_device *stream, const char *fmt, va_list args) {
 				if (!(flags & FLAGS_LEFT)) {
 					while (len < precision) {
 						len++;
-						out(stream, ' ');
+						out(&_s, stream, ' ');
 					}
 				}
 				for (u64 i = 0; i < len; i++) {
-					out(stream, *s);
+					out(&_s, stream, *s);
 					s++;
 				}
 				if (flags & FLAGS_LEFT) {
 					while (len < precision) {
 						len++;
-						out(stream, ' ');
+						out(&_s, stream, ' ');
 					}
 				}
 				fmt++;
@@ -250,24 +253,24 @@ u64 vfprintf(struct io_device *stream, const char *fmt, va_list args) {
 			case 'p': {
 				flags |= FLAGS_ZERO | FLAGS_HASH;
 				u64 value = (u64) va_arg(args, void*);
-				ntoa(stream, value, false, 16, flags, precision);
+				ntoa(&_s, stream, value, false, 16, flags, precision);
 				fmt++;
 				break;
 			}
 			case '%': {
-				out(stream, '%');
+				out(&_s, stream, '%');
 				fmt++;
 				break;
 			}
 			default: {
-				out(stream, *fmt);
+				out(&_s, stream, *fmt);
 				fmt++;
 				break;
 			}
 		}
 	}
 
-	return out(stream, '\0');
+	return out(&_s, stream, '\0');
 }
 
 struct string_io {

@@ -119,10 +119,8 @@ static void parse_madt(struct acpi_rsdt *rsdt) {
 		if (entry->type == ACPI_MADT_TYPE_LAPIC) {
 			struct acpi_madt_lapic *lapic = (void*) entry;
 			apic_register(lapic->apic_id);
-			kprintf("local apic: %d/%d/%#x\n", lapic->processor_uid, lapic->apic_id, lapic->flags);
 		} else if (entry->type == ACPI_MADT_TYPE_IOAPIC) {
 			struct acpi_madt_ioapic *ioapic = (void*) entry;
-			kprintf("found io apic: id=%d\n", ioapic->ioapic_id);
 			ioapic_register(ioapic->ioapic_id, ioapic->addr, ioapic->g_int_base);
 		}
 
