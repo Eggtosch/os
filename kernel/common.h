@@ -47,5 +47,13 @@ typedef _Bool bool;
 
 #define MAX_CPUS 16
 
+/*
+ * log a message with a timestamp to the screen.
+ * fmt: format string.
+ */
 void kprintf(const char *fmt, ...);
+
+/*
+ * halt the calling processor core in a loop, does not return.
+ */
 void kloop(void);

@@ -87,7 +87,7 @@ void kmain(struct boot_info *boot_info) {
 	kloop();
 }
 
-void kloop(void) {
+__attribute__((noreturn)) void kloop(void) {
 	if (!vmm_kernel_pagedir_active()) {
 		vmm_set_pagedir(NULL);
 		panic("kloop executed when other process was running!");

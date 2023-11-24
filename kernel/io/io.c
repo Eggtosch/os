@@ -25,10 +25,6 @@ u8 io_outinb(u16 port_out, u8 value_out, u16 port_in) {
 	return io_inb(port_in);
 }
 
-void io_wait(void) {
-	io_inb(0x80);
-}
-
 u64 rdmsr(u32 msr) {
 	u32 edx, eax;
 	asm volatile("rdmsr" : "=a"(eax), "=d"(edx) : "c"(msr) : "memory");
