@@ -55,18 +55,18 @@ u64 strncpy_s(char *dst, const char *src, u64 dst_len) {
 }
 
 void *memset(void *ptr, int value, u64 num) {
-	asm("rep stosb" :: "rdi"(ptr), "al"(value), "ecx"(num) : "memory");
+	asm("rep stosb" ::"rdi"(ptr), "al"(value), "ecx"(num) : "memory");
 	return ptr;
 }
 
 void *memcpy(void *dst, const void *src, u64 count) {
-	asm("rep movsb" :: "rdi"(dst), "rsi"(src), "ecx"(count) : "memory");
+	asm("rep movsb" ::"rdi"(dst), "rsi"(src), "ecx"(count) : "memory");
 	return dst;
 }
 
 int memcmp(void *ptr1, void *ptr2, u64 count) {
-	u8 *p1 = (u8*) ptr1;
-	u8 *p2 = (u8*) ptr2;
+	u8 *p1 = (u8 *) ptr1;
+	u8 *p2 = (u8 *) ptr2;
 	while (*p1 == *p2 && --count) {
 		p1++;
 		p2++;

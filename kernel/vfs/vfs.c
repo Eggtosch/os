@@ -2,9 +2,9 @@
 
 #include <memory/pmm.h>
 
+#include <common.h>
 #include <io/stdio.h>
 #include <string.h>
-#include <common.h>
 
 struct vfs_entry {
 	struct io_device *stream;
@@ -20,7 +20,7 @@ static u64 _vfs_size;
 static u64 _vfs_cap;
 
 void vfs_init(void) {
-	_vfs = pmm_alloc(1);
+	_vfs      = pmm_alloc(1);
 	_vfs_size = 0;
 	_vfs_cap  = ENTRIES_PER_PAGE;
 
@@ -43,7 +43,7 @@ int vfs_mount(const char *pathname, struct io_device *stream) {
 	}
 
 	struct vfs_entry *entry = &_vfs[_vfs_size];
-	entry->stream = stream;
+	entry->stream           = stream;
 	memcpy(entry->name, pathname, strlen(pathname) + 1);
 
 	_vfs_size++;

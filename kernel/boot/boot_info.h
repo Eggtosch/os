@@ -13,11 +13,7 @@ enum MEM_TYPE {
 	MEM_FRAMEBUFFER            = 7
 };
 
-enum MEDIA_TYPE {
-	MEDIA_GENERIC = 0,
-	MEDIA_OPTICAL = 1,
-	MEDIA_TFTP    = 2
-};
+enum MEDIA_TYPE { MEDIA_GENERIC = 0, MEDIA_OPTICAL = 1, MEDIA_TFTP = 2 };
 
 struct uuid {
 	u32 a;
@@ -65,7 +61,7 @@ struct boot_info {
 			u32 cpu_id;
 			u32 lapic_id;
 			u64 _reserved;
-			void (*cpu_entry)(struct smp_cpu*);
+			void (*cpu_entry)(struct smp_cpu *);
 			u64 arg;
 		} **smp_cpus;
 	} smp_info;

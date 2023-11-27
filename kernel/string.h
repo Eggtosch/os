@@ -57,7 +57,7 @@ void *memcpy(void *dst, const void *src, u64 count);
  * ptr1: first memory location.
  * ptr2: second memory location.
  * count: number of bytes to compare.
- * return: a negative number when the first unequal byte is smaller, 
+ * return: a negative number when the first unequal byte is smaller,
  *    positive if it is bigger, 0 if all are equal.
  */
 int memcmp(void *ptr1, void *ptr2, u64 count);

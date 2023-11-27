@@ -1,14 +1,14 @@
+#include <cpu/cpu.h>
+#include <interrupts/interrupts.h>
+#include <interrupts/lapic.h>
 #include <io/io.h>
 #include <io/stdio.h>
 #include <memory/pmm.h>
 #include <panic.h>
-#include <cpu/cpu.h>
 #include <time/hpet.h>
-#include <interrupts/interrupts.h>
-#include <interrupts/lapic.h>
 
 #define APIC_BASE 0xFEE00000
-#define APIC_ID  0x20
+#define APIC_ID 0x20
 #define APIC_EOI 0xB0
 #define APIC_SVR 0xF0
 #define APIC_TIMER 0x320
@@ -24,11 +24,11 @@ static u8 n_lapics = 0;
 
 static void apic_write32(u32 reg, u32 value) {
 	volatile u32 *addr = apic_base + reg;
-	*addr = value;
+	*addr              = value;
 }
 
 static u32 apic_read32(u32 reg) {
-	volatile u32* addr = apic_base + reg;
+	volatile u32 *addr = apic_base + reg;
 	return *addr;
 }
 
@@ -63,23 +63,22 @@ void apic_init(u8 id) {
 		return;
 	}
 
-	u64 t0, t1;
 	u64 min_cycles = 0xffffffffffffffffUL;
-	u32 ms = 5;
+	u32 ms         = 5;
 	for (int i = 0; i < 5; i++) {
-		t0 = apic_current_tsc();
+		u64 t0 = apic_current_tsc();
 		hpet_delay_ms(ms);
-		t1 = apic_current_tsc();
+		u64 t1     = apic_current_tsc();
 		u64 cycles = t1 - t0;
 		if (cycles < min_cycles) {
 			min_cycles = cycles;
 		}
 	}
 
-	u64 hz = min_cycles * 1000 / ms;
+	u64 hz              = min_cycles * 1000 / ms;
 	lapics[id].tsc_rate = hz;
 
-	u64 mhz = hz / 1000000;
+	u64 mhz          = hz / 1000000;
 	u64 mhz_fraction = hz % 1000000;
 	kprintf("cpu %d tsc rate: %d.%0.3d MHz\n", apic_current_cpu(), mhz, mhz_fraction / 1000);
 
@@ -91,11 +90,11 @@ void apic_init(u8 id) {
 
 void apic_register(u8 id) {
 	struct lapic *lapic = &lapics[n_lapics++];
-	lapic->lapic_id = id;
-	lapic->tsc_rate = 0;
+	lapic->lapic_id     = id;
+	lapic->tsc_rate     = 0;
 
 	if (apic_base == NULL) {
-		apic_base = pmm_to_virt(APIC_BASE);
+		apic_base    = pmm_to_virt(APIC_BASE);
 		u64 apic_msr = rdmsr(MSR_APIC_BASE);
 		// globally enable apic
 		wrmsr(MSR_APIC_BASE, apic_msr | (1 << 11));
@@ -122,7 +121,8 @@ void apic_signal_eoi(void) {
 }
 
 u64 apic_current_tsc(void) {
-	u32 hi, lo;
+	u32 hi;
+	u32 lo;
 	asm("rdtsc" : "=a"(lo), "=d"(hi));
 	return ((u64) hi << 32) | lo;
 }

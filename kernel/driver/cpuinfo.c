@@ -1,8 +1,9 @@
-#include <driver/driver.h>
 #include <cpu/cpu.h>
+#include <driver/driver.h>
 #include <memory/pmm.h>
 #include <string.h>
 
+// clang-format off
 static const char *cpu_flag_names[] = {
 	"fpu", "vme", "de", "pse", "tsc", "msr", "pae", "mce",
 	"cx8", "apic", "-", "sep", "mtrr", "pge", "mca", "cmov",
@@ -19,8 +20,9 @@ static const char *cpu_flag_names[] = {
 	"lahf_lm", "cmp_legacy", "svm", "extapic", "cr8_legacy", "abm", "sse4a", "misalignsse",
 	"3dnowprefetch", "osvw", "ibs", "xop", "skinit", "wdt", "-", "lwp",
 	"fma4", "tce", "-", "nodeid_msr", "-", "tbm", "topoext", "perfctr_core",
-	"perfctr_nb", "-", "dbx", "perftsc", "pcx_l2i", "monitorx", "addr_mask_ext", "-"
+	"perfctr_nb", "-", "dbx", "perftsc", "pcx_l2i", "monitorx", "addr_mask_ext", "-",
 };
+// clang-format on
 
 static const char *cpuinfo_string;
 static u64 cpuinfo_string_len;
@@ -30,14 +32,14 @@ static u64 cpuinfo_read(__unused struct io_device *dev, u8 *buf, u64 buflen, u64
 		return 0;
 	}
 	u64 available = cpuinfo_string_len - offset;
-	u64 max = buflen > available ? available : buflen;
+	u64 max       = buflen > available ? available : buflen;
 	memcpy(buf, cpuinfo_string + offset, max);
 	return max;
 }
 
 static struct driver_file driver_files[] = {
 	{"/dev/cpuinfo", {cpuinfo_read, NULL, NULL, NULL}},
-	{NULL, {NULL, NULL, NULL, NULL}},
+	{NULL,		   {NULL, NULL, NULL, NULL}        },
 };
 
 static void resize(char **s, u64 *n_pages) {
@@ -50,7 +52,7 @@ static void resize(char **s, u64 *n_pages) {
 
 static void cpuinfo_init(__unused struct boot_info *boot_info) {
 	u64 pages = 1;
-	char *s = pmm_alloc(pages);
+	char *s   = pmm_alloc(pages);
 	u64 index = 0;
 	for (u64 flag = 0; flag < ARRAY_LEN(cpu_flag_names); flag++) {
 		if (!cpu_has_flag(flag)) {
@@ -75,7 +77,7 @@ static void cpuinfo_init(__unused struct boot_info *boot_info) {
 		s[index++] = ' ';
 	}
 
-	cpuinfo_string = s;
+	cpuinfo_string     = s;
 	cpuinfo_string_len = index + 1;
 
 	driver_register("cpuinfo", driver_files);

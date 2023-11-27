@@ -1,18 +1,19 @@
-#include <interrupts/lapic.h>
 #include <interrupts/idt.h>
 #include <interrupts/interrupts.h>
+#include <interrupts/lapic.h>
 
 struct idt_descriptor {
 	u16 offset_0_15;
 	u16 selector;
-	u8  ist;
-	u8  type_and_attributes;
+	u8 ist;
+	u8 type_and_attributes;
 	u16 offset_16_31;
 	u32 offset_32_63;
 	u32 reserved;
 } __attribute__((packed));
 
-static_assert(sizeof(struct idt_descriptor) == 16, "sizeof struct idt_descriptor must be 16 bytes!");
+static_assert(sizeof(struct idt_descriptor) == 16,
+              "sizeof struct idt_descriptor must be 16 bytes!");
 
 struct idt_ptr {
 	u16 limit;
@@ -22,13 +23,13 @@ struct idt_ptr {
 static_assert(sizeof(struct idt_ptr) == 10, "sizeof struct idt_ptr must be 10!");
 
 extern void asm_load_idt(struct idt_ptr *idt_ptr);
-extern u64  asm_isr_names[];
+extern u64 asm_isr_names[];
 
 static struct idt_descriptor _idt[256];
-static struct idt_ptr        _idt_ptr;
+static struct idt_ptr _idt_ptr;
 
 void idt_create_descriptor(u8 index, u8 type_and_attributes) {
-	u64 offset = asm_isr_names[index];
+	u64 offset                  = asm_isr_names[index];
 	struct idt_descriptor *desc = &_idt[index];
 
 	desc->offset_0_15         = offset & 0xffff;

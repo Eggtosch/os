@@ -1,8 +1,8 @@
+#include <io/stdio.h>
+#include <memory/pmm.h>
+#include <memory/vmm.h>
 #include <process/elf.h>
 #include <string.h>
-#include <io/stdio.h>
-#include <memory/vmm.h>
-#include <memory/pmm.h>
 
 #define PT_LOAD (1)
 
@@ -15,7 +15,7 @@ const char *error_strings[] = {
 };
 
 const char *elf_error_str(int err) {
-	if (err < 0 || err > (int)(sizeof(error_strings) / sizeof(error_strings[0]))) {
+	if (err < 0 || err > (int) (sizeof(error_strings) / sizeof(error_strings[0]))) {
 		return "unknown error";
 	}
 	return error_strings[err];
@@ -48,14 +48,14 @@ struct elf_header {
 };
 
 struct elf64_phdr {
-    u32 type;
-    u32 flags;
-    u64 offset;
-    void *vaddr;
-    u64 paddr;
-    u64 filesize;
-    u64 memsize;
-    u64 align;
+	u32 type;
+	u32 flags;
+	u64 offset;
+	void *vaddr;
+	u64 paddr;
+	u64 filesize;
+	u64 memsize;
+	u64 align;
 };
 
 struct elf64_shdr {
@@ -83,23 +83,25 @@ struct elf64_symbol {
 static_assert(sizeof(struct elf64_symbol) == 24, "");
 
 __unused static void print_sections(u8 *elf) {
-	struct elf_header *header = (struct elf_header*) elf;
-	struct elf64_shdr *shstrtab = (void*) elf + (header->shdr_offset + header->shstrndx * header->shdr_size);
-	char *names = (void*) elf + shstrtab->sh_offset;
+	struct elf_header *header = (struct elf_header *) elf;
+	struct elf64_shdr *shstrtab =
+		(void *) elf + (header->shdr_offset + header->shstrndx * header->shdr_size);
+	char *names = (void *) elf + shstrtab->sh_offset;
 
 	for (int i = 0; i < header->shdr_count; i++) {
-		struct elf64_shdr *shdr = (void*) elf + (header->shdr_offset + i * header->shdr_size);
+		struct elf64_shdr *shdr = (void *) elf + (header->shdr_offset + i * header->shdr_size);
 		kprintf("%s\n", &names[shdr->sh_name]);
 	}
 }
 
 static struct elf64_shdr *find_section(u8 *elf, const char *section) {
-	struct elf_header *header = (struct elf_header*) elf;
-	struct elf64_shdr *shstrtab = (void*) elf + (header->shdr_offset + header->shstrndx * header->shdr_size);
-	char *names = (void*) elf + shstrtab->sh_offset;
+	struct elf_header *header = (struct elf_header *) elf;
+	struct elf64_shdr *shstrtab =
+		(void *) elf + (header->shdr_offset + header->shstrndx * header->shdr_size);
+	char *names = (void *) elf + shstrtab->sh_offset;
 
 	for (int i = 0; i < header->shdr_count; i++) {
-		struct elf64_shdr *shdr = (void*) elf + (header->shdr_offset + i * header->shdr_size);
+		struct elf64_shdr *shdr = (void *) elf + (header->shdr_offset + i * header->shdr_size);
 		if (strcmp(&names[shdr->sh_name], section) == 0) {
 			return shdr;
 		}
@@ -109,19 +111,20 @@ static struct elf64_shdr *find_section(u8 *elf, const char *section) {
 }
 
 __unused static void print_segments(u8 *elf) {
-	struct elf_header *header = (struct elf_header*) elf;
+	struct elf_header *header = (struct elf_header *) elf;
 	for (int i = 0; i < header->phdr_count; i++) {
-		struct elf64_phdr *phdr = (void*) elf + (header->phdr_offset + i * header->phdr_size);
+		struct elf64_phdr *phdr = (void *) elf + (header->phdr_offset + i * header->phdr_size);
 		if (phdr->type != PT_LOAD) {
 			continue;
 		}
-		kprintf("load: vaddr = %#x, filesize = %#x, memsize = %#x\n", phdr->vaddr, phdr->filesize, phdr->memsize);
+		kprintf("load: vaddr = %#x, filesize = %#x, memsize = %#x\n", phdr->vaddr, phdr->filesize,
+		        phdr->memsize);
 	}
 }
 
 int elf_validate(u8 *elf) {
-	static u8 elf_header[] = {0x7f, 'E', 'L', 'F'};
-	struct elf_header *header = (struct elf_header*) elf;
+	static u8 elf_header[]    = {0x7f, 'E', 'L', 'F'};
+	struct elf_header *header = (struct elf_header *) elf;
 
 	if (memcmp(header->header, elf_header, 4) != 0) {
 		return ELF_WRONG_HEADER;
@@ -143,12 +146,12 @@ int elf_validate(u8 *elf) {
 }
 
 int elf_load(u8 *elf, pagedir_t **pagedir, u64 *entry) {
-	struct elf_header *header = (struct elf_header*) elf;
+	struct elf_header *header = (struct elf_header *) elf;
 
-	void *lowest_vaddr = (void*) 0xffffffffffffffffUL;
-	void *highest_vaddr = (void*) 0UL;
+	void *lowest_vaddr  = (void *) 0xffffffffffffffffUL;
+	void *highest_vaddr = (void *) 0UL;
 	for (int i = 0; i < header->phdr_count; i++) {
-		struct elf64_phdr *phdr = (void*) elf + (header->phdr_offset + i * header->phdr_size);
+		struct elf64_phdr *phdr = (void *) elf + (header->phdr_offset + i * header->phdr_size);
 		if (phdr->type != PT_LOAD) {
 			continue;
 		}
@@ -163,12 +166,12 @@ int elf_load(u8 *elf, pagedir_t **pagedir, u64 *entry) {
 		}
 	}
 
-	u64 size = ALIGNUP_PAGE(highest_vaddr - lowest_vaddr);
+	u64 size      = ALIGNUP_PAGE(highest_vaddr - lowest_vaddr);
 	pagedir_t *pd = vmm_pagedir_create();
 	vmm_map(pd, lowest_vaddr, size);
 
 	for (int i = 0; i < header->phdr_count; i++) {
-		struct elf64_phdr *phdr = (void*) elf + (header->phdr_offset + i * header->phdr_size);
+		struct elf64_phdr *phdr = (void *) elf + (header->phdr_offset + i * header->phdr_size);
 		if (phdr->type != PT_LOAD) {
 			continue;
 		}
@@ -177,7 +180,7 @@ int elf_load(u8 *elf, pagedir_t **pagedir, u64 *entry) {
 		}
 
 		u8 *dest = pmm_to_virt(vmm_vaddr_to_phys(pd, phdr->vaddr));
-		u8 *src = (u8*) elf + phdr->offset;
+		u8 *src  = (u8 *) elf + phdr->offset;
 		u64 size = phdr->filesize;
 		memcpy(dest, src, size);
 		if (phdr->filesize < phdr->memsize) {
@@ -186,18 +189,18 @@ int elf_load(u8 *elf, pagedir_t **pagedir, u64 *entry) {
 	}
 
 	*pagedir = pd;
-	*entry = header->entry;
+	*entry   = header->entry;
 
 	return ELF_OK;
 }
 
-static u8 *kernel_elf = NULL;
-static u64 kernel_elf_size = 0;
+static u8 *kernel_elf                   = NULL;
+static u64 kernel_elf_size              = 0;
 static struct elf64_shdr *kernel_symtab = NULL;
 static struct elf64_shdr *kernel_strtab = NULL;
 
 void elf_set_kernel_info(struct boot_info *boot_info) {
-	kernel_elf = boot_info->kernel_file->addr;
+	kernel_elf      = boot_info->kernel_file->addr;
 	kernel_elf_size = boot_info->kernel_file->size;
 
 	kernel_symtab = find_section(kernel_elf, ".symtab");
@@ -211,15 +214,16 @@ const char *elf_get_kernel_symbol(void *addr) {
 		return "";
 	}
 
-	const char *names = (void*) kernel_elf + kernel_strtab->sh_offset;
-	struct elf64_symbol *symbols = (void*) kernel_elf + kernel_symtab->sh_offset;
+	const char *names            = (void *) kernel_elf + kernel_strtab->sh_offset;
+	struct elf64_symbol *symbols = (void *) kernel_elf + kernel_symtab->sh_offset;
 
 	u64 best_match = 0;
-	int n_entries = kernel_symtab->sh_size / kernel_symtab->sh_entsize;
+	int n_entries  = kernel_symtab->sh_size / kernel_symtab->sh_entsize;
 	for (int i = 0; i < n_entries; i++) {
 		struct elf64_symbol *sym = &symbols[i];
 
-		bool in_text_section = sym->sym_value >= 0xffffffff80000000UL && sym->sym_value < (u64) &__etext;
+		bool in_text_section =
+			sym->sym_value >= 0xffffffff80000000UL && sym->sym_value < (u64) &__etext;
 		if (sym->sym_size == 0 && in_text_section) {
 			if ((u64) addr - sym->sym_value < (u64) addr - symbols[best_match].sym_value) {
 				best_match = i;

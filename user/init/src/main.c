@@ -1,5 +1,5 @@
-#include <syscall.h>
 #include <common.h>
+#include <syscall.h>
 
 u32 f[10000];
 const char msg1[] = "writing to framebuffer...\n";
@@ -16,9 +16,9 @@ void _start(const char *program, u64 progsize) {
 		f[i] = 0x80ffffff;
 	}
 
-	sys_write(serial, (void*) msg1, sizeof(msg1));
+	sys_write(serial, (void *) msg1, sizeof(msg1));
 	sys_fb_write(100, 100, 100, 100, f);
 
 	sys_exit();
-	while (1);
+	while (1) {}
 }

@@ -24,7 +24,7 @@ int sys_mmap(void *addr, u64 length, int fd, u64 flags);
 int sys_munmap(void *addr, u64 length);
 
 void sys_exit(void) {
-	asm volatile(SYSCALL :: "a"(0x21) : "memory");
+	asm volatile(SYSCALL ::"a"(0x21) : "memory");
 }
 
 u64 sys_fb_info(void) {

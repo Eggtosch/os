@@ -1,5 +1,5 @@
-#include <io/io.h>
 #include <driver/driver.h>
+#include <io/io.h>
 
 #define COM1 0x3f8
 
@@ -11,10 +11,11 @@ static bool serial_send_ready(void) {
 	return io_inb(COM1 + 5) & 0x20;
 }
 
-static u64 serial_recv(__unused struct io_device *stream, u8 *buf, u64 bufsize, __unused u64 offset) {
+static u64 serial_recv(__unused struct io_device *stream, u8 *buf, u64 bufsize,
+                       __unused u64 offset) {
 	u64 i;
 	for (i = 0; i < bufsize; i++) {
-		while (!serial_recv_ready());
+		while (!serial_recv_ready()) {}
 		buf[i] = io_inb(COM1);
 		if (buf[i] == '\n') {
 			break;
@@ -26,7 +27,7 @@ static u64 serial_recv(__unused struct io_device *stream, u8 *buf, u64 bufsize, 
 static u64 serial_send(__unused struct io_device *stream, u8 *buf, u64 count, __unused u64 offset) {
 	u64 i;
 	for (i = 0; i < count; i++) {
-		while (!serial_send_ready());
+		while (!serial_send_ready()) {}
 		io_outb(COM1, buf[i]);
 	}
 	return i;
@@ -34,7 +35,7 @@ static u64 serial_send(__unused struct io_device *stream, u8 *buf, u64 count, __
 
 static struct driver_file driver_files[] = {
 	{"/dev/serial", {serial_recv, serial_send, NULL, NULL}},
-	{NULL, {NULL, NULL, NULL, NULL}}
+    {NULL,          {NULL, NULL, NULL, NULL}              }
 };
 
 struct io_device *serial_io_device_get(void) {

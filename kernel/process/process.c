@@ -1,14 +1,14 @@
-#include <process/process.h>
 #include <process/elf.h>
-#include <process/scheduler.h>
 #include <process/pipe.h>
+#include <process/process.h>
+#include <process/scheduler.h>
 
 #include <boot/boot_info.h>
 #include <memory/vmm.h>
 
-#include <string.h>
-#include <panic.h>
 #include <io/stdio.h>
+#include <panic.h>
+#include <string.h>
 
 #define MAX_PROCESSES (100)
 
@@ -68,7 +68,7 @@ static pid_t load_to_memory(const char *name, u64 **pagedir, u64 *entry) {
 		panic("Could not load %s: %s\n", name, elf_error_str(err));
 	}
 
-	vmm_map(*pagedir, (void*) (VMM_USER_STACK_END - VMM_USER_STACK_LEN), VMM_USER_STACK_LEN);
+	vmm_map(*pagedir, (void *) (VMM_USER_STACK_END - VMM_USER_STACK_LEN), VMM_USER_STACK_LEN);
 
 	return pid;
 }
@@ -96,10 +96,10 @@ pid_t process_create(const char *name) {
 
 	pid_t pid = load_to_memory(name, &pagedir, &entry);
 
-	_processes[pid].status  = PROC_RUNNABLE;
-	_processes[pid].pagedir = pagedir;
-	_processes[pid].entry   = entry;
-	_processes[pid].read_pipe = pipe_new();
+	_processes[pid].status     = PROC_RUNNABLE;
+	_processes[pid].pagedir    = pagedir;
+	_processes[pid].entry      = entry;
+	_processes[pid].read_pipe  = pipe_new();
 	_processes[pid].write_pipe = pipe_new();
 
 	return pid;
@@ -115,10 +115,10 @@ void process_destroy(pid_t pid) {
 	p->status = PROC_NONE;
 
 	if (p->read_pipe.dev.close != NULL) {
-		p->read_pipe.dev.close((struct io_device*) &p->read_pipe);
+		p->read_pipe.dev.close((struct io_device *) &p->read_pipe);
 	}
 	if (p->write_pipe.dev.close != NULL) {
-		p->write_pipe.dev.close((struct io_device*) &p->write_pipe);
+		p->write_pipe.dev.close((struct io_device *) &p->write_pipe);
 	}
 
 	vmm_set_pagedir(NULL);

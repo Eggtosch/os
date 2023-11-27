@@ -1,16 +1,16 @@
 #include <cpu/cpu.h>
 #include <io/stdio.h>
-#include <string.h>
-#include <panic.h>
 #include <memory/pmm.h>
+#include <panic.h>
+#include <string.h>
 
 #define VIRTUAL_ADDR_OFFSET (0xffff800000000000UL)
 
 struct mem_bitmap {
-	u64  bitmap_size;
-	u64  mem_size;
+	u64 bitmap_size;
+	u64 mem_size;
 	u64 *mem_map;
-	u64  mem_lowest_free_page;
+	u64 mem_lowest_free_page;
 };
 
 static struct mem_info *_mem_info;
@@ -39,15 +39,24 @@ static u8 mem_bitmap_check(u64 bit) {
 
 static const char *get_memtype(u32 mem_type) {
 	switch (mem_type) {
-		case MEM_USABLE                : return "usable";
-		case MEM_RESERVED              : return "reserved";
-		case MEM_ACPI_RECLAIMABLE      : return "acpi1";
-		case MEM_ACPI_NVS              : return "acpi2";
-		case MEM_BAD_MEMORY            : return "bad memory";
-		case MEM_BOOTLOADER_RECLAIMABLE: return "bootloader reclaimable";
-		case MEM_KERNEL_AND_MODULES    : return "kernel and modules";
-		case MEM_FRAMEBUFFER           : return "framebuffer";
-		default:                         return "unknown";
+	case MEM_USABLE:
+		return "usable";
+	case MEM_RESERVED:
+		return "reserved";
+	case MEM_ACPI_RECLAIMABLE:
+		return "acpi1";
+	case MEM_ACPI_NVS:
+		return "acpi2";
+	case MEM_BAD_MEMORY:
+		return "bad memory";
+	case MEM_BOOTLOADER_RECLAIMABLE:
+		return "bootloader reclaimable";
+	case MEM_KERNEL_AND_MODULES:
+		return "kernel and modules";
+	case MEM_FRAMEBUFFER:
+		return "framebuffer";
+	default:
+		return "unknown";
 	}
 }
 
@@ -74,8 +83,8 @@ static void cache_lowest_free_page_from(u64 start_page) {
 }
 
 void pmm_init(struct boot_info *boot_info) {
-	_mem_info = &boot_info->mem_info;
-	u64 ram_top = 0;
+	_mem_info                        = &boot_info->mem_info;
+	u64 ram_top                      = 0;
 	struct mem_entry *largest_region = _mem_info->mem_map[0];
 
 	kprintf("memory map:\n");
@@ -83,7 +92,8 @@ void pmm_init(struct boot_info *boot_info) {
 	for (u64 i = 0; i < _mem_info->mem_entries; i++) {
 		struct mem_entry *entry = _mem_info->mem_map[i];
 
-		kprintf("    %#0.16x (%s): %s\n", entry->mem_base, to_unit(entry->mem_length), get_memtype(entry->mem_type));
+		kprintf("    %#0.16x (%s): %s\n", entry->mem_base, to_unit(entry->mem_length),
+		        get_memtype(entry->mem_type));
 
 		if (entry->mem_type != MEM_USABLE) {
 			continue;
@@ -110,9 +120,9 @@ void pmm_init(struct boot_info *boot_info) {
 		}
 
 		if (entry->mem_length >= _bitmap.bitmap_size) {
-			_bitmap.mem_map = (u64*) pmm_to_virt((u64) entry->mem_base);
-			u64 aligned_bitmap_size = (_bitmap.bitmap_size + (PAGE_SIZE-1)) & ~(PAGE_SIZE-1);
-			entry->mem_base   += aligned_bitmap_size;
+			_bitmap.mem_map         = (u64 *) pmm_to_virt((u64) entry->mem_base);
+			u64 aligned_bitmap_size = (_bitmap.bitmap_size + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1);
+			entry->mem_base += aligned_bitmap_size;
 			entry->mem_length -= aligned_bitmap_size;
 			break;
 		}
@@ -138,8 +148,8 @@ void pmm_init(struct boot_info *boot_info) {
 	cache_lowest_free_page_from(0);
 
 	struct mem_entry *last_entry = _mem_info->mem_map[_mem_info->mem_entries - 1];
-	u64 total_bytes = (u64) last_entry->mem_base + last_entry->mem_length;
-	const char *total_bytes_str = to_unit(total_bytes);
+	u64 total_bytes              = (u64) last_entry->mem_base + last_entry->mem_length;
+	const char *total_bytes_str  = to_unit(total_bytes);
 	while (*total_bytes_str == ' ') {
 		total_bytes_str++;
 	}
@@ -151,7 +161,7 @@ void *pmm_alloc(u64 page_count) {
 		return 0;
 	}
 	u64 consecutive_free_pages = 0;
-	u64 npages = _bitmap.mem_size / PAGE_SIZE;
+	u64 npages                 = _bitmap.mem_size / PAGE_SIZE;
 	for (u64 i = _bitmap.mem_lowest_free_page; i < npages; i++) {
 		if (mem_bitmap_check(i) == 0) {
 			consecutive_free_pages++;
@@ -219,7 +229,7 @@ u64 pmm_to_phys(void *vaddr) {
 }
 
 void *pmm_to_virt(u64 paddr) {
-	void *vaddr = (void*) paddr;
+	void *vaddr = (void *) paddr;
 	if (paddr >= VIRTUAL_ADDR_OFFSET) {
 		return vaddr;
 	}
@@ -230,7 +240,7 @@ void *pmm_highest_memmap_addr(void) {
 	u64 highest = 0;
 	for (u64 i = 0; i < _mem_info->mem_entries; i++) {
 		struct mem_entry *entry = _mem_info->mem_map[i];
-		u64 addr = (u64) entry->mem_base + entry->mem_length;
+		u64 addr                = (u64) entry->mem_base + entry->mem_length;
 		if (addr > highest) {
 			highest = addr;
 		}
@@ -243,7 +253,7 @@ void *pmm_highest_memmap_addr(void) {
 	highest |= 0x7fffffffUL;
 	highest += 1;
 
-	return (void*) (highest + VIRTUAL_ADDR_OFFSET);
+	return (void *) (highest + VIRTUAL_ADDR_OFFSET);
 }
 
 u64 pmm_framebuffer_addr(void) {

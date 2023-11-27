@@ -9,15 +9,15 @@ u8 io_inb(u16 port) {
 u16 io_inw(u16 port) {
 	u16 ret;
 	asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
-		return ret;
+	return ret;
 }
 
 void io_outb(u16 port, u8 value) {
-	asm volatile("outb %0, %1" :: "a"(value), "Nd"(port));
+	asm volatile("outb %0, %1" ::"a"(value), "Nd"(port));
 }
 
 void io_outw(u16 port, u16 value) {
-	asm volatile("outw %0, %1" :: "a"(value), "Nd"(port));
+	asm volatile("outw %0, %1" ::"a"(value), "Nd"(port));
 }
 
 u8 io_outinb(u16 port_out, u8 value_out, u16 port_in) {
@@ -26,7 +26,8 @@ u8 io_outinb(u16 port_out, u8 value_out, u16 port_in) {
 }
 
 u64 rdmsr(u32 msr) {
-	u32 edx, eax;
+	u32 edx;
+	u32 eax;
 	asm volatile("rdmsr" : "=a"(eax), "=d"(edx) : "c"(msr) : "memory");
 	return ((u64) edx << 32) | eax;
 }
@@ -34,5 +35,5 @@ u64 rdmsr(u32 msr) {
 void wrmsr(u32 msr, u64 value) {
 	u32 eax = value & 0xffffffff;
 	u32 edx = value >> 32;
-	asm volatile("wrmsr" :: "a"(eax), "d"(edx), "c"(msr) : "memory");
+	asm volatile("wrmsr" ::"a"(eax), "d"(edx), "c"(msr) : "memory");
 }

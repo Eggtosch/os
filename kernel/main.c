@@ -1,22 +1,22 @@
 #include <boot/boot_info.h>
 
-#include <mutex.h>
 #include <io/stdio.h>
+#include <mutex.h>
 
 #include <memory/pmm.h>
 #include <memory/vmm.h>
 
 #include <framebuffer/framebuffer.h>
 
-#include <interrupts/lapic.h>
-#include <cpu/cpu.h>
 #include <acpi/acpi.h>
+#include <cpu/cpu.h>
+#include <interrupts/lapic.h>
 
 #include <vfs/vfs.h>
 
 #include <interrupts/idt.h>
-#include <syscall/syscall.h>
 #include <syscall/efi.h>
+#include <syscall/syscall.h>
 #include <time/time.h>
 
 #include <driver/driver.h>
@@ -93,7 +93,7 @@ __attribute__((noreturn)) void kloop(void) {
 		panic("kloop executed when other process was running!");
 	}
 
-	while(1) {
+	while (1) {
 		asm("sti");
 		asm("hlt");
 	}
@@ -103,7 +103,7 @@ void kprintf(const char *fmt, ...) {
 	mutex_lock(&kprintf_lock);
 
 	i64 secs = time_since_boot();
-	u64 ns = time_current_ns();
+	u64 ns   = time_current_ns();
 
 	struct boot_info *boot_info = boot_info_get();
 	char buf[200];

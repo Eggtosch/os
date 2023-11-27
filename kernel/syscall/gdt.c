@@ -5,19 +5,19 @@
 struct gdt_entry {
 	u16 limit_0_15;
 	u16 base_0_15;
-	u8  base_16_23;
-	u8  type;
-	u8  limit_16_19_and_flags;
-	u8  base_24_31;
+	u8 base_16_23;
+	u8 type;
+	u8 limit_16_19_and_flags;
+	u8 base_24_31;
 } __attribute__((packed));
 
 struct gdt_tss_entry {
 	u16 size;
 	u16 base_low;
-	u8  base_mid;
-	u8  flags1;
-	u8  flags2;
-	u8  base_high;
+	u8 base_mid;
+	u8 flags1;
+	u8 flags2;
+	u8 base_high;
 	u32 base_upper;
 	u32 reserved0;
 } __attribute__((packed));
@@ -69,11 +69,11 @@ extern void asm_load_gdt_and_tss(struct gdt_ptr *gdt_ptr);
 
 static void copy_old_gdt(void) {
 	struct gdt_ptr old_gdt_ptr;
-	asm volatile("sgdt %0" : "=m"(old_gdt_ptr) :: );
-	
-	u64 *old_gdt = (u64*) old_gdt_ptr.base;
+	asm volatile("sgdt %0" : "=m"(old_gdt_ptr)::);
+
+	u64 *old_gdt = (u64 *) old_gdt_ptr.base;
 	for (u64 i = 0; i < (old_gdt_ptr.limit + 1) / sizeof(struct gdt_entry); i++) {
-		((u64*) &_gdt)[i] = old_gdt[i];
+		((u64 *) &_gdt)[i] = old_gdt[i];
 	}
 }
 
@@ -111,11 +111,11 @@ void gdt_init(void *kernel_stack) {
 	copy_old_gdt();
 	create_userspace_and_tss_entries();
 	for (u32 i = 0; i < sizeof(_tss); i++) {
-		*(u8*) &_tss = 0;
+		*(u8 *) &_tss = 0;
 	}
 	_tss.rsp0 = (u64) kernel_stack;
 
-	struct gdt_ptr new_gdt_ptr = { .limit = sizeof(_gdt) - 1, .base = (u64) &_gdt };
+	struct gdt_ptr new_gdt_ptr = {.limit = sizeof(_gdt) - 1, .base = (u64) &_gdt};
 
 	asm_load_gdt_and_tss(&new_gdt_ptr);
 }

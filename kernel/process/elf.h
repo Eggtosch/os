@@ -1,7 +1,7 @@
 #pragma once
 
-#include <common.h>
 #include <boot/boot_info.h>
+#include <common.h>
 
 #define ELF_OK (0)
 #define ELF_WRONG_HEADER (1)

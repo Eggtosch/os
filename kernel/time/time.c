@@ -1,15 +1,15 @@
+#include <acpi/acpi.h>
 #include <interrupts/interrupts.h>
 #include <io/io.h>
 #include <io/stdio.h>
-#include <acpi/acpi.h>
 #include <time/hpet.h>
 #include <time/time.h>
 
-#define SECONDS_IN_MINUTE   (60L)
-#define SECONDS_IN_HOUR     (60L * SECONDS_IN_MINUTE)
-#define SECONDS_IN_DAY      (24L * SECONDS_IN_HOUR)
+#define SECONDS_IN_MINUTE (60L)
+#define SECONDS_IN_HOUR (60L * SECONDS_IN_MINUTE)
+#define SECONDS_IN_DAY (24L * SECONDS_IN_HOUR)
 #define SECONDS_IN_MONTH(m) ((i64) days_in_month[m] * SECONDS_IN_DAY)
-#define SECONDS_IN_YEAR     (365L * SECONDS_IN_DAY)
+#define SECONDS_IN_YEAR (365L * SECONDS_IN_DAY)
 
 i8 days_in_month[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
@@ -34,7 +34,7 @@ i64 time_from_struct(struct time time) {
 	timestamp += SECONDS_IN_DAY * (abs(20L - time.century) / 4 + 1);
 
 	bool this_year_is_leap_year = time.year % 4 == 0;
-	bool leap_day_is_not_done = (time.month == 1) || (time.month == 2 && time.day <= 28);
+	bool leap_day_is_not_done   = (time.month == 1) || (time.month == 2 && time.day <= 28);
 	if (this_year_is_leap_year && leap_day_is_not_done) {
 		timestamp -= SECONDS_IN_DAY;
 	}
@@ -71,25 +71,25 @@ static void write_register(u8 reg, u8 value) {
 }
 
 static struct time get_rtc_struct(void) {
-	u8 status_b = read_register(0x0b);
-	u8 seconds  = read_register(0x00);
-	u8 minutes  = read_register(0x02);
-	u8 hours    = read_register(0x04);
-	u8 day      = read_register(0x07);
-	u8 month    = read_register(0x08);
-	u8 year     = read_register(0x09);
+	u8 status_b    = read_register(0x0b);
+	u8 seconds     = read_register(0x00);
+	u8 minutes     = read_register(0x02);
+	u8 hours       = read_register(0x04);
+	u8 day         = read_register(0x07);
+	u8 month       = read_register(0x08);
+	u8 year        = read_register(0x09);
 	u8 century_reg = acpi_get_century_register();
-	u8 century  = century_reg ? read_register(century_reg) : 20;
+	u8 century     = century_reg ? read_register(century_reg) : 20;
 
 	if (!(status_b & 0x04)) {
 		bool hours_pm_mode = (hours & 0x80) != 0;
 		hours &= 0x7f;
 		seconds = ((seconds >> 4) * 10) + (seconds & 0x0f);
 		minutes = ((minutes >> 4) * 10) + (minutes & 0x0f);
-		hours   = ((hours   >> 4) * 10) + (hours   & 0x0f) + (hours_pm_mode ? 0x80 : 0);
-		day     = ((day     >> 4) * 10) + (day     & 0x0f);
-		month   = ((month   >> 4) * 10) + (month   & 0x0f);
-		year    = ((year    >> 4) * 10) + (year    & 0x0f);
+		hours   = ((hours >> 4) * 10) + (hours & 0x0f) + (hours_pm_mode ? 0x80 : 0);
+		day     = ((day >> 4) * 10) + (day & 0x0f);
+		month   = ((month >> 4) * 10) + (month & 0x0f);
+		year    = ((year >> 4) * 10) + (year & 0x0f);
 		century = ((century >> 4) * 10) + (century & 0x0f);
 	}
 	if (!(status_b & 0x02)) {
@@ -131,7 +131,7 @@ void time_init(void) {
 	interrupt_enable(INT_RTC, true);
 
 	rtc_global_time = get_rtc_struct();
-	boot_time = time_from_struct(rtc_global_time);
+	boot_time       = time_from_struct(rtc_global_time);
 
 	asm volatile("sti");
 }
