@@ -1,0 +1,27 @@
+Language: Cpp # c and c++
+
+# make tabs 4 spaces wide
+TabWidth: 4
+# indentation is 4 spaced wide
+IndentWidth: 4
+# use tabs for indentation but align with spaces
+UseTab: AlignWithSpaces
+# length limit for lines
+ColumnLimit: 100
+# insert braces for single line blocks
+InsertBraces: true
+# align members in an array of structs
+AlignArrayOfStructures: Left
+# only allow functions with empty body as one line
+AllowShortFunctionsOnASingleLine: Empty
+# do not allow if statements on one line
+AllowShortIfStatementsOnASingleLine: Never
+# allow loops with empty body on one line
+AllowShortLoopsOnASingleLine: true
+AllowShortBlocksOnASingleLine: Empty
+# align consecutive assignements
+AlignConsecutiveAssignments: true
+# add space after type cast
+SpaceAfterCStyleCast: true
+# prevent return types of functions on its own line
+PenaltyReturnTypeOnItsOwnLine: 99999
