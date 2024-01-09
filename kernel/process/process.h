@@ -4,12 +4,8 @@
 #include <memory/vmm.h>
 #include <process/pipe.h>
 
-#define PROC_NONE (0)
-#define PROC_RUNNING (1)
-#define PROC_RUNNABLE (2)
-
 struct process {
-	u64 status;
+	const char *name;
 	pagedir_t *pagedir;
 	u64 entry;
 	struct pipe read_pipe;

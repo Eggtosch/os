@@ -2,50 +2,67 @@
 #include <interrupts/lapic.h>
 #include <io/stdio.h>
 #include <memory/vmm.h>
+#include <mutex.h>
 #include <process/kernel_task.h>
 #include <process/process.h>
 #include <process/scheduler.h>
 
+struct scheduler {
+	int total;
+	int ready;
+	int blocked;
+	int running;
+	int last_proc;
+	tid_t procs[MAX_CPUS];
+};
+
 extern void asm_jump_usermode(u64 addr, u64 stack, u64 prog, u64 size);
 
+static mutex_t sched_mutex;
+static struct scheduler scheduler;
+
 static void sched_irq(struct cpu_state *state) {
-	kprintf("scheduler irq\n");
-	static int x    = 1;
-	static int init = 0;
+	mutex_lock(&sched_mutex);
 
-	if (init < 5) {
-		apic_next_int_ms(100);
-	}
-
-	if (init++ == 0) {
-		kernel_task_swap_cpu_state(-1, 0, state);
+	apic_next_int_ms(1000);
+	u8 cpu = apic_current_cpu();
+	if (scheduler.ready == 0) {
+		mutex_unlock(&sched_mutex);
 		return;
 	}
 
-	if (x) {
-		kernel_task_swap_cpu_state(0, 1, state);
-	} else {
-		kernel_task_swap_cpu_state(1, 0, state);
+	tid_t old_task = scheduler.procs[cpu];
+	tid_t new_task = kernel_task_get_next_rr(scheduler.last_proc);
+	if (old_task == -1) {
+		scheduler.ready -= 1;
+		scheduler.running += 1;
 	}
 
-	x = !x;
+	scheduler.last_proc = new_task;
+	kprintf("%d -> %d\n", old_task, new_task);
+	kernel_task_swap_cpu_state(old_task, new_task, state);
+	scheduler.procs[cpu] = new_task;
 
-	/*pid_t pid = process_current();
-	struct process *p = process_get(pid);
-	if (p->status == PROC_NONE) {
-	    return;
-	} else if (p->status == PROC_RUNNABLE) {
-	    p->status = PROC_RUNNING;
-	    vmm_set_pagedir(p->pagedir);
-	    asm_jump_usermode(p->entry, VMM_USER_STACK_END, (u64) NULL, 0);
-	} else if (p->status == PROC_RUNNING) {
-	    // replace with other process
-	}*/
+	mutex_unlock(&sched_mutex);
 }
 
 void scheduler_init(void) {
+	mutex_init(&sched_mutex);
+
+	scheduler = (struct scheduler){0};
+	for (int i = 0; i < MAX_CPUS; i++) {
+		scheduler.procs[i] = -1;
+	}
+
 	interrupt_register(INT_SCHED, sched_irq, INT_KERNEL);
 	kprintf("registered scheduler interrupt\n");
+}
+
+void scheduler_add_task(void) {
+	mutex_lock(&sched_mutex);
+	scheduler.total += 1;
+	scheduler.ready += 1;
+	mutex_unlock(&sched_mutex);
 }
 
 void scheduler_start(void) {

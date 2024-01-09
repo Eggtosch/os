@@ -47,6 +47,17 @@ typedef _Bool bool;
 
 #define MAX_CPUS 16
 
+#define ENOENT 1
+#define ESRCH 2
+#define LAST_ERROR 3
+
+/*
+ * get a human readable error description for an error code.
+ * err: error code.
+ * return: error string.
+ */
+const char *strerror(int err);
+
 /*
  * log a message with a timestamp to the screen.
  * fmt: format string.

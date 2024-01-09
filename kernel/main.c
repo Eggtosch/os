@@ -34,21 +34,21 @@ static void f(__unused struct smp_cpu *cpu) {
 	apic_init(cpu->lapic_id);
 	idt_init();
 	syscall_init(boot_info_get());
-	// scheduler_start();
+	scheduler_start();
 
 	kloop();
 }
 
 static void ktask0(void) {
 	while (1) {
-		kprintf("ktask 0\n");
+		kprintf("[%d] ktask 0\n", apic_current_cpu());
 		asm("hlt");
 	}
 }
 
 static void ktask1(void) {
 	while (1) {
-		kprintf("ktask 1\n");
+		kprintf("[%d] ktask 1\n", apic_current_cpu());
 		asm("hlt");
 	}
 }
@@ -100,10 +100,10 @@ void kmain(struct boot_info *boot_info) {
 
 	process_init(boot_info);
 	process_start_init("/modules/init");
+	scheduler_init();
 
 	tid_t k0 = kernel_task_create("ktask0", ktask0);
 	tid_t k1 = kernel_task_create("ktask1", ktask1);
-	scheduler_init();
 	scheduler_start();
 
 	kloop();
@@ -139,4 +139,21 @@ void kprintf(const char *fmt, ...) {
 	va_end(args);
 
 	mutex_unlock(&kprintf_lock);
+}
+
+static const char *error_strings[] = {
+	[ENOENT] = "No such file or directory",
+	[ESRCH]  = "No such process",
+};
+
+const char *strerror(int err) {
+	if (err >= 0 && err < LAST_ERROR) {
+		return error_strings[err];
+	}
+
+	if (err < 0 && err > -LAST_ERROR) {
+		return error_strings[-err];
+	}
+
+	return "Unknown error code";
 }

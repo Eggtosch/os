@@ -2,6 +2,8 @@
 
 #include <common.h>
 
+void scheduler_add_task(void);
+
 /*
  * initialize scheduler inzerrupts.
  */

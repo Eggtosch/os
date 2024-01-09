@@ -1,13 +1,11 @@
+#include <boot/boot_info.h>
+#include <io/stdio.h>
+#include <memory/vmm.h>
+#include <panic.h>
 #include <process/elf.h>
 #include <process/pipe.h>
 #include <process/process.h>
 #include <process/scheduler.h>
-
-#include <boot/boot_info.h>
-#include <memory/vmm.h>
-
-#include <io/stdio.h>
-#include <panic.h>
 #include <string.h>
 
 #define MAX_PROCESSES (100)
@@ -30,7 +28,7 @@ static struct kernel_module *search_module(const char *module) {
 
 static pid_t first_free_process(void) {
 	for (pid_t i = 0; i < MAX_PROCESSES; i++) {
-		if (_processes[i].status == PROC_NONE) {
+		if (_processes[i].name == NULL) {
 			return i;
 		}
 	}
@@ -81,7 +79,7 @@ void process_start_init(const char *name) {
 		panic("Init process already started!\n");
 	}
 
-	_processes[0].status  = PROC_RUNNABLE;
+	_processes[0].name    = name;
 	_processes[0].pagedir = pagedir;
 	_processes[0].entry   = entry;
 }
@@ -90,17 +88,18 @@ pid_t process_create(const char *name) {
 	pagedir_t *pagedir;
 	u64 entry;
 
-	if (_processes[0].status == PROC_NONE) {
+	if (_processes[0].name == NULL) {
 		panic("Can't start %s, init process does not exist\n", name);
 	}
 
 	pid_t pid = load_to_memory(name, &pagedir, &entry);
 
-	_processes[pid].status     = PROC_RUNNABLE;
-	_processes[pid].pagedir    = pagedir;
-	_processes[pid].entry      = entry;
-	_processes[pid].read_pipe  = pipe_new();
-	_processes[pid].write_pipe = pipe_new();
+	struct process *p = &_processes[pid];
+	p->name           = name;
+	p->pagedir        = pagedir;
+	p->entry          = entry;
+	p->read_pipe      = pipe_new();
+	p->write_pipe     = pipe_new();
 
 	return pid;
 }
@@ -112,7 +111,7 @@ void process_destroy(pid_t pid) {
 
 	struct process *p = &_processes[pid];
 
-	p->status = PROC_NONE;
+	p->name = NULL;
 
 	if (p->read_pipe.dev.close != NULL) {
 		p->read_pipe.dev.close((struct io_device *) &p->read_pipe);

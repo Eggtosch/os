@@ -1,6 +1,7 @@
 #include <memory/pmm.h>
 #include <panic.h>
 #include <process/kernel_task.h>
+#include <process/scheduler.h>
 #include <string.h>
 
 #define MAX_KERNEL_TASKS 200
@@ -27,6 +28,17 @@ static struct kernel_task *get_task(tid_t task) {
 	}
 
 	return &_kernel_tasks[task];
+}
+
+tid_t kernel_task_get_next_rr(tid_t t) {
+	for (int i = 1; i <= MAX_KERNEL_TASKS; i++) {
+		tid_t task = (t + i) % MAX_KERNEL_TASKS;
+		if (get_task(task) != NULL) {
+			return task;
+		}
+	}
+
+	return 0;
 }
 
 void kernel_task_swap_cpu_state(tid_t old_task, tid_t new_task, struct cpu_state *state) {
@@ -60,6 +72,7 @@ tid_t kernel_task_create(const char *name, void (*f)(void)) {
 	}
 
 	struct kernel_task *ktask = &_kernel_tasks[task];
+	ktask->name               = name;
 	ktask->kernel_stack_top   = pmm_alloc(KERNEL_TASK_STACK_PAGES);
 	memset(&ktask->state, 0, sizeof(struct cpu_state));
 	kprintf("new task: %x\n", sizeof(struct cpu_state));
@@ -69,6 +82,7 @@ tid_t kernel_task_create(const char *name, void (*f)(void)) {
 	ktask->state.cs          = 0x28;
 	ktask->state.eflags      = 1 << 9; // enable interrupts
 	ktask->userspace_process = -1;
+	scheduler_add_task();
 	return task;
 }
 
@@ -78,7 +92,13 @@ tid_t kernel_task_create_with_process(pid_t process) {
 		panic("No free kernel tasks!");
 	}
 
+	struct process *proc = process_get(process);
+	if (proc == NULL) {
+		return -ESRCH;
+	}
+
 	struct kernel_task *ktask = &_kernel_tasks[task];
+	ktask->name               = proc->name;
 	ktask->kernel_stack_top   = pmm_alloc(KERNEL_TASK_STACK_PAGES);
 	memset(&ktask->state, 0, sizeof(struct cpu_state));
 	ktask->userspace_process = process;

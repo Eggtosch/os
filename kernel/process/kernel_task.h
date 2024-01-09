@@ -7,11 +7,13 @@
 typedef i64 tid_t;
 
 struct kernel_task {
+	const char *name;
 	void *kernel_stack_top;
 	struct cpu_state state;
 	pid_t userspace_process;
 };
 
+tid_t kernel_task_get_next_rr(tid_t t);
 void kernel_task_swap_cpu_state(tid_t old_task, tid_t new_task, struct cpu_state *state);
 void kernel_task_system_init(void);
 tid_t kernel_task_create(const char *name, void (*f)(void));
