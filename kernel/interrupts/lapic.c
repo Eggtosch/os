@@ -127,8 +127,15 @@ u64 apic_current_tsc(void) {
 	return ((u64) hi << 32) | lo;
 }
 
-void apic_set_next_int(u64 tsc) {
+void apic_next_int(u64 tsc) {
 	wrmsr(MSR_TSC_DEADLINE, tsc);
+}
+
+void apic_next_int_ms(u64 ms) {
+	u64 tsc      = apic_current_tsc();
+	u64 tsc_rate = lapics[apic_current_cpu()].tsc_rate;
+	tsc += (tsc_rate / 1000) * ms;
+	apic_next_int(tsc);
 }
 
 u8 apic_current_cpu(void) {

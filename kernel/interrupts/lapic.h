@@ -41,7 +41,13 @@ u64 apic_current_tsc(void);
  * set the next timer interrupt deadline.
  * tsc: value of next tsc deadline.
  */
-void apic_set_next_int(u64 tsc);
+void apic_next_int(u64 tsc);
+
+/*
+ * set the next timer interrupt deadline.
+ * ms: milliseconds from now.
+ */
+void apic_next_int_ms(u64 ms);
 
 /*
  * get the cpu this function is executed on.
