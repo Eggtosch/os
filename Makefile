@@ -90,7 +90,7 @@ install: build
 .PHONY: clean
 clean:
 	$(MAKE) --no-print-directory -C kernel clean
-	$(MAKE) --no-print-directory -C user clean-all
+	$(MAKE) --no-print-directory -C user init-clean
 	$(MAKE) --no-print-directory -C libc clean
 	rm -rf bin
 	rm -f $(ISO)
