@@ -17,12 +17,14 @@
 #include <interrupts/idt.h>
 #include <syscall/efi.h>
 #include <syscall/syscall.h>
+#include <time/hpet.h>
 #include <time/time.h>
 
 #include <driver/driver.h>
 #include <driver/util.h>
 
 #include <process/elf.h>
+#include <process/kernel_task.h>
 #include <process/process.h>
 #include <process/scheduler.h>
 
@@ -32,9 +34,23 @@ static void f(__unused struct smp_cpu *cpu) {
 	apic_init(cpu->lapic_id);
 	idt_init();
 	syscall_init(boot_info_get());
-	scheduler_start();
+	// scheduler_start();
 
 	kloop();
+}
+
+static void ktask0(void) {
+	while (1) {
+		kprintf("ktask 0\n");
+		asm("hlt");
+	}
+}
+
+static void ktask1(void) {
+	while (1) {
+		kprintf("ktask 1\n");
+		asm("hlt");
+	}
 }
 
 extern driver_init_t __start_driver_init[];
@@ -68,6 +84,8 @@ void kmain(struct boot_info *boot_info) {
 	time_init();
 	syscall_init(boot_info);
 
+	kernel_task_system_init();
+
 	for (u32 i = 0; i < boot_info->smp_info.cpu_count; i++) {
 		boot_info->smp_info.smp_cpus[i]->cpu_entry = f;
 	}
@@ -82,6 +100,10 @@ void kmain(struct boot_info *boot_info) {
 
 	process_init(boot_info);
 	process_start_init("/modules/init");
+
+	tid_t k0 = kernel_task_create("ktask0", ktask0);
+	tid_t k1 = kernel_task_create("ktask1", ktask1);
+	scheduler_init();
 	scheduler_start();
 
 	kloop();
