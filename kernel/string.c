@@ -55,12 +55,12 @@ u64 strncpy_s(char *dst, const char *src, u64 dst_len) {
 }
 
 void *memset(void *ptr, int value, u64 num) {
-	asm("rep stosb" ::"rdi"(ptr), "al"(value), "ecx"(num) : "memory");
+	asm("rep stosb" ::"D"(ptr), "a"(value), "c"(num) : "memory");
 	return ptr;
 }
 
 void *memcpy(void *dst, const void *src, u64 count) {
-	asm("rep movsb" ::"rdi"(dst), "rsi"(src), "ecx"(count) : "memory");
+	asm volatile("rep movsb" ::"D"(dst), "S"(src), "c"(count) : "memory");
 	return dst;
 }
 
